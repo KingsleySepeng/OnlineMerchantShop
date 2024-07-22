@@ -1,1 +1,79 @@
-<p>checkout works!</p>
+<div class="container mt-5">
+  <h1 class="mb-4">Checkout</h1>
+
+  <form>
+    <!-- Order Summary -->
+    <h3 class="mb-3">Order Summary</h3>
+    <table class="table table-bordered">
+      <thead>
+      <tr>
+        <th scope="col">Product</th>
+        <th scope="col">Name</th>
+        <th scope="col">Price</th>
+        <th scope="col">Quantity</th>
+        <th scope="col">Total</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+        <td><img src="https://via.placeholder.com/100" class="img-fluid" alt="Product 1"></td>
+        <td>Product 1</td>
+        <td>$10.00</td>
+        <td>1</td>
+        <td>$10.00</td>
+      </tr>
+      <tr>
+        <td><img src="https://via.placeholder.com/100" class="img-fluid" alt="Product 2"></td>
+        <td>Product 2</td>
+        <td>$15.00</td>
+        <td>2</td>
+        <td>$30.00</td>
+      </tr>
+      <!-- Add more products as needed -->
+      </tbody>
+    </table>
+    <div class="text-right">
+      <h4>Total: $40.00</h4>
+    </div>
+
+    <!-- Shipping Details -->
+    <h3 class="mb-3 mt-4">Shipping Details</h3>
+    <div class="form-group">
+      <label for="fullName">Full Name</label>
+      <input type="text" class="form-control" id="fullName" placeholder="Enter your full name">
+    </div>
+    <div class="form-group">
+      <label for="address">Shipping Address</label>
+      <input type="text" class="form-control" id="address" placeholder="Enter your shipping address">
+    </div>
+    <div class="form-group">
+      <label for="city">City</label>
+      <input type="text" class="form-control" id="city" placeholder="Enter your city">
+    </div>
+    <div class="form-group">
+      <label for="postalCode">Postal Code</label>
+      <input type="text" class="form-control" id="postalCode" placeholder="Enter your postal code">
+    </div>
+
+    <!-- Payment Option -->
+    <h3 class="mb-3 mt-4">Payment</h3>
+    <div class="form-group">
+      <label for="cardName">Name on Card</label>
+      <input type="text" class="form-control" id="cardName" placeholder="Enter name as on card">
+    </div>
+    <div class="form-group">
+      <label for="cardNumber">Credit Card Number</label>
+      <input type="text" class="form-control" id="cardNumber" placeholder="Enter your credit card number">
+    </div>
+    <div class="form-group">
+      <label for="cardExpiry">Expiry Date</label>
+      <input type="text" class="form-control" id="cardExpiry" placeholder="MM/YY">
+    </div>
+    <div class="form-group">
+      <label for="cardCVC">CVC</label>
+      <input type="text" class="form-control" id="cardCVC" placeholder="CVC">
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-3">Submit</button>
+  </form>
+</div>

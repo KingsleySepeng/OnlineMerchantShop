@@ -6,15 +6,17 @@ import {ErrorComponent} from "./error/error.component";
 import {CartComponent} from "./cart/cart.component";
 import {CheckoutComponent} from "./checkout/checkout.component";
 import {LogoutComponent} from "./logout/logout.component";
+import {ProductComponent} from "./product/product.component";
 
 export const routes: Routes = [
-  {path:'',component:LoginComponent},
+  {path:'',component:MainpageComponent},
   {path: 'login',component: LoginComponent},
   {path:'logout',component: LogoutComponent},
   {path: 'signup',component: SignupComponent},
   {path: 'main',component: MainpageComponent},
   {path: 'cart',component: CartComponent},
   {path:'checkout',component: CheckoutComponent},
+  {path:'product',component: ProductComponent},
 
   {path:'error',component: ErrorComponent}
 

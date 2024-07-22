@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import {Router} from "@angular/router";
 
 @Component({
   selector: 'app-cart',
@@ -9,4 +10,9 @@ import { Component } from '@angular/core';
 })
 export class CartComponent {
 
+  constructor(private router:Router) {
+  }
+  handleCheckout():void{
+    this.router.navigate(['checkout'])
+  }
 }
