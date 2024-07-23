@@ -9,7 +9,7 @@ import {LogoutComponent} from "./logout/logout.component";
 import {ProductComponent} from "./product/product.component";
 
 export const routes: Routes = [
-  {path:'',component:MainpageComponent},
+  {path:'',component:LoginComponent},
   {path: 'login',component: LoginComponent},
   {path:'logout',component: LogoutComponent},
   {path: 'signup',component: SignupComponent},
@@ -18,7 +18,7 @@ export const routes: Routes = [
   {path:'checkout',component: CheckoutComponent},
   {path:'product',component: ProductComponent},
 
-  {path:'error',component: ErrorComponent}
+  {path:'**',component: ErrorComponent}
 
 ];
 
