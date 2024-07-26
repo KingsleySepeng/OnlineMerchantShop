@@ -3,6 +3,7 @@ import {Router} from "@angular/router";
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
 import {NgClass, NgStyle} from "@angular/common";
 import {AuthService} from "../auth.service";
+import {User} from "../user";
 
 @Component({
   selector: 'app-login',
@@ -19,20 +20,22 @@ import {AuthService} from "../auth.service";
 
 
 export class LoginComponent implements OnInit{
-  email: String = '';
-  password:String = '';
+  // email: String = '';
+  // password:String = '';
   successMessage:String='';
   isWarning:Boolean = false;
   isSuccess:Boolean = false;
 
+  user:User;
   constructor(private router:Router,private authService:AuthService) {
+  this.user = new User();
   }
 
 ngOnInit():void{
 }
 
   login(): void{
-    if(this.email === 'king@gmail.com' && this.password === '1234'){
+    if(this.user.email === 'king@gmail.com' && this.user.password === '1234'){
       this.successMessage = "Login successfull, you'll be redirected shortly";
       this.isSuccess = true;
       this.isWarning = false;
