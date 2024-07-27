@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Page</title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .product-image {
+      max-width: 100%;
+      height: auto;
+    }
+    .price-old {
+      text-decoration: line-through;
+      color: #888;
+    }
+    .price-new {
+      color: #d9534f;
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+    .related-products img {
+      max-width: 100%;
+      height: auto;
+    }
+    .quantity-select {
+      max-width: 200px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <a class="navbar-brand" href="#">Online Store</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" href="#">Home</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#">Products</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#">Contact</a>
+      </li>
+    </ul>
+  </div>
+</nav>
+
+<!-- Product Details Section -->
+<div class="container mt-5">
+  <div class="row">
+    <!-- Product Images -->
+    <div class="col-md-6">
+      <img src="https://via.placeholder.com/600x400" alt="Product Image" class="product-image mb-4">
+    </div>
+
+    <!-- Product Information -->
+    <div class="col-md-6">
+      <h2 class="mb-3">Product Name</h2>
+      <p class="text-muted">Category: <strong>Category Name</strong></p>
+      <p class="text-muted">In Stock: <strong>15 items</strong></p>
+
+      <div class="mb-3">
+        <span class="price-old">$50.00</span>
+        <span class="price-new">$40.00</span>
+      </div>
+
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam.</p>
+
+      <!-- Quantity Selector -->
+      <div class="form-group mb-4">
+        <label for="quantity">Quantity:</label>
+        <div class="input-group quantity-select">
+          <div class="input-group-prepend">
+            <button class="btn btn-outline-secondary" type="button" id="quantity-decrease">-</button>
+          </div>
+          <input type="text" class="form-control text-center" id="quantity" value="1" readonly>
+          <div class="input-group-append">
+            <button class="btn btn-outline-secondary" type="button" id="quantity-increase">+</button>
+          </div>
+        </div>
+        <select class="custom-select mt-2" id="quantity-options">
+          <option value="1" selected>1</option>
+          <option value="3">3</option>
+          <option value="5">5</option>
+          <option value="custom">Specify</option>
+        </select>
+        <input type="number" class="form-control mt-2" id="custom-quantity" placeholder="Specify quantity" style="display: none;">
+      </div>
+
+      <div class="mb-4">
+        <button class="btn btn-primary">Add to Cart</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Related Products Section -->
+<div class="container mt-5">
+  <h3 class="mb-4">Recently Viewed</h3>
+  <div class="row">
+    <div class="col-md-4">
+      <div class="card mb-4">
+        <img src="https://via.placeholder.com/300x200" class="card-img-top" alt="Related Product 1">
+        <div class="card-body">
+          <h5 class="card-title">Related Product 1</h5>
+          <p class="card-text">$30.00</p>
+          <a href="#" class="btn btn-primary">View Product</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card mb-4">
+        <img src="https://via.placeholder.com/300x200" class="card-img-top" alt="Related Product 2">
+        <div class="card-body">
+          <h5 class="card-title">Related Product 2</h5>
+          <p class="card-text">$35.00</p>
+          <a href="#" class="btn btn-primary">View Product</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card mb-4">
+        <img src="https://via.placeholder.com/300x200" class="card-img-top" alt="Related Product 3">
+        <div class="card-body">
+          <h5 class="card-title">Related Product 3</h5>
+          <p class="card-text">$25.00</p>
+          <a href="#" class="btn btn-primary">View Product</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script>
+  // Quantity Selector Script
+  document.getElementById('quantity-decrease').addEventListener('click', function() {
+    let quantityInput = document.getElementById('quantity');
+    let currentValue = parseInt(quantityInput.value, 10);
+    if (currentValue > 1) {
+      quantityInput.value = currentValue - 1;
+    }
+  });
+
+  document.getElementById('quantity-increase').addEventListener('click', function() {
+    let quantityInput = document.getElementById('quantity');
+    let currentValue = parseInt(quantityInput.value, 10);
+    quantityInput.value = currentValue + 1;
+  });
+
+  document.getElementById('quantity-options').addEventListener('change', function() {
+    let selectedValue = this.value;
+    let customQuantityInput = document.getElementById('custom-quantity');
+    if (selectedValue === 'custom') {
+      customQuantityInput.style.display = 'block';
+    } else {
+      customQuantityInput.style.display = 'none';
+      document.getElementById('quantity').value = selectedValue;
+    }
+  });
+</script>
+</body>
+</html>

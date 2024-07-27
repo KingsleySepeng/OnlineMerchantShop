@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Online Store</title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .badge-special {
+      background-color: #ff5722; /* Custom color for special offer badge */
+      color: white;
+    }
+    .badge-best-seller {
+      background-color: #28a745; /* Green color for best seller badge */
+      color: white;
+    }
+    .badge-popular {
+      background-color: #ffc107; /* Yellow color for popular badge */
+      color: black;
+    }
+    .original-price {
+      text-decoration: line-through;
+      color: #888;
+    }
+    .discounted-price {
+      color: #d9534f;
+      font-size: 1.25rem;
+    }
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Banner -->
+<div class="jumbotron jumbotron-fluid text-center">
+  <div class="container">
+    <h1 class="display-4">Welcome to Our Online Store</h1>
+    <p class="lead">Discover our amazing products and great deals!</p>
+    <a href="#products" class="btn btn-primary">Shop Now</a>
+  </div>
+</div>
+
+<!-- Products Section -->
+<div class="container mt-5" id="products">
+  <h2 class="mb-4 text-center">Featured Products</h2>
+  <div class="row">
+    <div class="col-md-4">
+      <div class="card mb-4">
+        <img src="https://via.placeholder.com/300x200" class="card-img-top" alt="Product 1">
+        <div class="card-body">
+          <h5 class="card-title">Product 1</h5>
+          <p class="text-muted">Only 10 left in stock!</p>
+          <div>
+            <span class="original-price">$12.00</span>
+            <span class="discounted-price">$10.00</span>
+            <span class="badge badge-special ml-2">Special</span>
+            <span class="badge badge-best-seller ml-2">Best Seller</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <a routerLink="cart" class="btn btn-primary">Add to Cart</a>
+          <a routerLink="product" class="btn btn-secondary">View Product</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card mb-4">
+        <img src="https://via.placeholder.com/300x200" class="card-img-top" alt="Product 2">
+        <div class="card-body">
+          <h5 class="card-title">Product 2</h5>
+          <p class="text-muted">Only 5 left in stock!</p>
+          <div>
+            <span class="original-price">$18.00</span>
+            <span class="discounted-price">$15.00</span>
+            <span class="badge badge-special ml-2">Special</span>
+            <span class="badge badge-popular ml-2">Popular</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <a routerLink="cart" class="btn btn-primary">Add to Cart</a>
+          <a routerLink="product" class="btn btn-secondary">View Product</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card mb-4">
+        <img src="https://via.placeholder.com/300x200" class="card-img-top" alt="Product 3">
+        <div class="card-body">
+          <h5 class="card-title">Product 3</h5>
+          <p class="text-muted">In stock</p>
+          <div>
+            <span class="original-price">$25.00</span>
+            <span class="discounted-price">$20.00</span>
+            <span class="badge badge-special ml-2">Special</span>
+            <span class="badge badge-best-seller ml-2">Best Seller</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <a routerLink="cart" class="btn btn-primary">Add to Cart</a>
+          <a routerLink="product" class="btn btn-secondary">View Product</a>
+        </div>
+      </div>
+    </div>
+    <!-- Add more products as needed -->
+  </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
