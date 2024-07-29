@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {Router} from "@angular/router";
-import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
+import {FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
 import {NgClass, NgStyle} from "@angular/common";
 import {AuthService} from "../auth.service";
 import {User} from "../user";
@@ -36,7 +36,7 @@ ngOnInit():void{
 
   login(): void{
     if(this.user.email === 'king@gmail.com' && this.user.password === '1234'){
-      this.successMessage = "Login successfull, you'll be redirected shortly";
+      this.successMessage = "Login successfull, you'll be redirected to the main page shortly";
       this.isSuccess = true;
       this.isWarning = false;
       console.log("Login successfull")
