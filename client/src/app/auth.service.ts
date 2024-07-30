@@ -18,5 +18,6 @@ private loggedIn: Boolean = false;
   }
   logout():void{
     this.setLoginStatus(false);
+    sessionStorage.removeItem(this.storageKey);
   }
 }

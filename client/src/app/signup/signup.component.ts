@@ -4,6 +4,7 @@ import {User} from "../user";
 import {FormsModule} from "@angular/forms";
 import {NgClass, NgStyle} from "@angular/common";
 import { AuthService } from '../auth.service';
+import {UserService} from "../services/user.service";
 
 @Component({
   selector: 'app-signup',
@@ -25,7 +26,7 @@ isWarning: boolean = false;
 isPasswordSuccess: boolean = false;
 isPasswordWarning: boolean = false;
 
-  constructor(private router:Router,private authService:AuthService) {
+  constructor(private router:Router,private authService:AuthService,private userService:UserService) {
   this.user = new User();
   }
 
@@ -38,26 +39,33 @@ isPasswordWarning: boolean = false;
       this.isSuccess = false;
       this.successMessage = 'Please make sure everything is filled in.'
       return;
-    } 
+    }
     this.checkPassword();
-
     if(!this.isPasswordSuccess)
     {this.isWarning = true;
       this.isSuccess = false;
       this.successMessage = this.passwordMessage;
       return;
     }
-    this.successMessage = 'you will be redirected to the main page shortly ';
-      console.log("SignUp successfull")
-      this.isWarning = false;
-      this.isSuccess = true;
-      setTimeout(()=>{
-        this.authService.setLoginStatus(true);
-        this.router.navigate(['main']);
-      },2000);
-      console.log( this.user); 
-    
-    
+    this.userService.signup(this.user).subscribe(
+      response=>{
+        this.successMessage = 'you will be redirected to the main page shortly ';
+        console.log("SignUp successfull")
+        this.isWarning = false;
+        this.isSuccess = true;
+        setTimeout(()=>{
+          this.authService.setLoginStatus(true);
+          this.router.navigate(['main']);
+        },2000);
+        console.log( this.user);
+      },
+      error => {
+        console.error("Error during sign-up", error);
+        this.isWarning = true;
+        this.isSuccess = false;
+        this.successMessage = 'An error occurred during sign-up. Please try again.';
+      }
+    )
   }
 
   checkPassword(): void {
