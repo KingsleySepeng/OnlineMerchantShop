@@ -53,7 +53,7 @@ isPasswordWarning: boolean = false;
       this.isSuccess = true;
       setTimeout(()=>{
         this.authService.setLoginStatus(true);
-        this.router.navigate(['main']);
+        this.router.navigate(['main-page']);
       },2000);
       console.log( this.user); 
     

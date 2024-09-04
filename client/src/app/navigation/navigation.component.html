@@ -11,12 +11,12 @@
     <!-- Navigation links centered -->
     <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
       <div class="navbar-nav mx-auto">
-                <a class="nav-link active" aria-current="page" routerLink="main">Home</a>
-                <a class="nav-link" *ngIf="!authService.isLoggedIn()" routerLink="login">Login</a>
-                <a class="nav-link" *ngIf="!authService.isLoggedIn()" routerLink="signup">Sign Up</a>
+                <a class="nav-link active" aria-current="page" [routerLink]="['/main-page']">Home</a>
+                <a class="nav-link" *ngIf="!authService.isLoggedIn()" [routerLink]="['/login']">Login</a>
+                <a class="nav-link" *ngIf="!authService.isLoggedIn()" [routerLink]="['/sign-up']">Sign Up</a>
                 <a class="nav-link" *ngIf="authService.isLoggedIn()"  (click)="logout()">Logout</a>
-                <a class="nav-link" *ngIf="authService.isLoggedIn()" routerLink="cart">Cart</a>
-                <a class="nav-link" *ngIf="authService.isLoggedIn()" routerLink="checkout">Checkout</a>
+                <a class="nav-link" *ngIf="authService.isLoggedIn()" [routerLink]="['/shopping-cart']">Cart</a>
+                <a class="nav-link" *ngIf="authService.isLoggedIn()" [routerLink]="['/checkout']">Checkout</a>
 <!--                <a class="nav-link" *ngIf="authService.isLoggedIn()" routerLink="error">Profile</a>-->
 <!--                <a class="nav-link" *ngIf="authService.isLoggedIn()" routerLink="error">Admin DashBoard</a>-->
       </div>
