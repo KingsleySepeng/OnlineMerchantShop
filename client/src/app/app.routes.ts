@@ -10,14 +10,14 @@ import {ProductComponent} from "./product/product.component";
 import { AuthGaurd } from './auth.guard';
 
 export const routes: Routes = [
-  {path:'',redirectTo:'/main-page',pathMatch:'full'},
+  {path:'',redirectTo:'main-page',pathMatch:'full'},
+  {path: 'main-page',component: MainpageComponent},
   {path: 'login',component: LoginComponent},
   {path:'logout',component: LogoutComponent},
   {path: 'sign-up',component: SignupComponent},
-  {path: 'main-page',component: MainpageComponent,canActivate:[AuthGaurd]},
   {path: 'shopping-cart',component: CartComponent,canActivate:[AuthGaurd]},
   {path:'checkout',component: CheckoutComponent,canActivate:[AuthGaurd]},
-  {path:'product',component: ProductComponent,canActivate:[AuthGaurd]},
+  {path:'product',component: ProductComponent},
   {path:'**',component: ErrorComponent}
 
 ];

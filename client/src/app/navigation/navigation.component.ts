@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import {Router, RouterLink, RouterLinkActive} from "@angular/router";
 import {AuthService} from "../auth.service";
 import {NgIf} from "@angular/common";
+import { CartService } from '../cart.service';
 
 @Component({
   selector: 'app-navigation',
@@ -16,11 +17,20 @@ import {NgIf} from "@angular/common";
 })
 export class NavigationComponent {
 
-  constructor(public authService: AuthService,private router:Router) {
+  cartQuantity:number=0;
+  
+  constructor(public authService: AuthService,private router:Router,private cartService:CartService) {
+  }
+
+  ngOnInit(): void {
+    // Subscribe to cart changes to keep track of quantity
+    this.cartService.getCartQuantity().subscribe(quantity => {
+      this.cartQuantity = quantity;
+    });
   }
 
   logout():void{
     this.authService.logout();
-    this.router.navigate(['login'])
+    this.router.navigate(['main-page'])
   }
 }
