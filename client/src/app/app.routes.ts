@@ -8,6 +8,7 @@ import {CheckoutComponent} from "./checkout/checkout.component";
 import {LogoutComponent} from "./logout/logout.component";
 import {ProductComponent} from "./product/product.component";
 import { AuthGaurd } from './auth.guard';
+import { OrderSucessComponent } from './order-sucess/order-sucess.component';
 
 export const routes: Routes = [
   {path:'',redirectTo:'main-page',pathMatch:'full'},
@@ -18,6 +19,7 @@ export const routes: Routes = [
   {path: 'shopping-cart',component: CartComponent,canActivate:[AuthGaurd]},
   {path:'checkout',component: CheckoutComponent,canActivate:[AuthGaurd]},
   {path:'product',component: ProductComponent},
+  { path: 'order-success', component: OrderSucessComponent },
   {path:'**',component: ErrorComponent}
 
 ];
