@@ -18,7 +18,7 @@ export const routes: Routes = [
   {path: 'sign-up',component: SignupComponent},
   {path: 'shopping-cart',component: CartComponent,canActivate:[AuthGaurd]},
   {path:'checkout',component: CheckoutComponent,canActivate:[AuthGaurd]},
-  {path:'product',component: ProductComponent},
+  {path:'product/:id',component: ProductComponent},
   { path: 'order-success', component: OrderSucessComponent },
   {path:'**',component: ErrorComponent}
 

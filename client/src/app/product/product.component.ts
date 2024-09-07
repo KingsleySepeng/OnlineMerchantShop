@@ -4,6 +4,7 @@ import { CartService } from '../cart.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ProductService } from '../product.service';
 
 @Component({
   selector: 'app-product',
@@ -13,28 +14,41 @@ import { FormsModule } from '@angular/forms';
   styleUrl: './product.component.css'
 })
 export class ProductComponent implements OnInit {
-product!:Product;
+product:Product | undefined;
 addedToCartMessage:string='';
 quantity:number=1;
+productId:number | undefined;
 
-constructor(private cartService:CartService,private route:ActivatedRoute,private router:Router){}
+constructor(private cartService:CartService,private route:ActivatedRoute,private router:Router,private productService:ProductService){}
+
 ngOnInit() {
-  const productId = this.route.snapshot.paramMap.get('id');
-  // Fetch the product based on productId (you can implement this depending on your setup)
-  // For simplicity, let's assume the product is fetched or passed to this component
-  // this.product = getProductById(productId);
+  const id =this.route.snapshot.paramMap.get('id');
+  if(id){
+    this.productId=+id;
+    this.product = this.productService.getProductId(this.productId);
+  }
+}
+
+isQuantityValid():boolean{
+  return this.product?this.quantity<=this.product.stock:false;
+}
+
+getTotalPrice():number{
+  return this.product? this.product.discountedPrice * this.quantity:0;
 }
 
 // Method to add product to cart
 addToCart() {
-  this.cartService.addToCart(this.product, this.quantity);
-  this.addedToCartMessage = `${this.product.name} has been added to your cart!`;
-
-  // Optionally, remove the message after a few seconds
-  setTimeout(() => {
-    this.addedToCartMessage = '';
-  }, 3000);  // Message will disappear after 3 seconds
-}
+  if(this.product){
+    this.cartService.addToCart(this.product!, this.quantity);
+    this.addedToCartMessage = `${this.product.name} has been added to your cart!`;
+      setTimeout(() => {
+        this.router.navigate(['/shopping-cart']);
+      }, 3000); 
+    }else{
+    this.addedToCartMessage = 'Error:Product not found!';
+    }
+  }
 
 // Quantity adjustment logic
 increaseQuantity() {

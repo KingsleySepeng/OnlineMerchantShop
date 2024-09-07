@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:latest
+    container_name: mysql-shopdb
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: shopdb
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./sql:/docker-entrypoint-initdb.d  # Mount the folder with the SQL scripts
+    networks:
+      - shopnet
+
+networks:
+  shopnet:
+    driver: bridge

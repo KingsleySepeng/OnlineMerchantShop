@@ -42,7 +42,9 @@
     <a href="#products" class="btn btn-primary">Shop Now</a>
   </div>
 </div>
-
+<div *ngIf="productAddedMessage" class="alert alert-success mt-2">
+  {{ productAddedMessage }}
+</div>
 <!-- Products Section -->
 <div class="container mt-5" id="products">
   <h2 class="mb-4 text-center">Featured Products</h2>
@@ -63,11 +65,11 @@
         <div class="card-footer">
     <!-- Show Add to Cart if user is logged in -->
     <a *ngIf="authService.isLoggedIn()" (click)="addToCart(product)" class="btn btn-primary">Add to Cart</a>
-    <a *ngIf="authService.isLoggedIn()" [routerLink]="['/product']" class="btn btn-primary">View Product</a>
+    <a *ngIf="authService.isLoggedIn()" [routerLink]="['/product',product.id]" class="btn btn-primary">View Product</a>
 <!-- Show a disabled button or link to login if not logged in -->
     <a *ngIf="!authService.isLoggedIn()" [routerLink]="['/login']" class="btn btn-primary">Login to Add to Cart</a>
         </div>
-      </div>
+        </div>
     </div>
   </div>
 </div>
