@@ -3,7 +3,7 @@ USE shopdb;
 
 -- Users table with soft delete support
 CREATE TABLE users (
-    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
     email VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,  -- For hashed passwords
@@ -14,7 +14,7 @@ CREATE TABLE users (
 
 -- Products table with soft delete support
 CREATE TABLE products (
-    product_id INT AUTO_INCREMENT PRIMARY KEY,
+    product_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     description TEXT,
     image_url VARCHAR(255),  -- URL to the product image
@@ -27,8 +27,8 @@ CREATE TABLE products (
 
 -- Orders table
 CREATE TABLE orders (
-    order_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,  -- Foreign key to users table
+    order_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,  -- Foreign key to users table
     total_amount DECIMAL(10, 2) NOT NULL,
     status ENUM('pending', 'shipped', 'delivered', 'cancelled') DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -37,9 +37,9 @@ CREATE TABLE orders (
 
 -- Order items table
 CREATE TABLE order_items (
-    order_item_id INT AUTO_INCREMENT PRIMARY KEY,
-    order_id INT NOT NULL,  -- Foreign key to orders table
-    product_id INT NOT NULL,  -- Foreign key to products table
+    order_item_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    order_id BIGINT NOT NULL,  -- Foreign key to orders table
+    product_id BIGINT NOT NULL,  -- Foreign key to products table
     quantity INT NOT NULL,
     price DECIMAL(10, 2) NOT NULL,  -- Price at the time of the order
     FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE,
@@ -48,8 +48,8 @@ CREATE TABLE order_items (
 
 -- Carts table
 CREATE TABLE carts (
-    cart_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,  -- Foreign key to users table
+    cart_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,  -- Foreign key to users table
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(user_id)
@@ -57,9 +57,9 @@ CREATE TABLE carts (
 
 -- Cart items table
 CREATE TABLE cart_items (
-    cart_item_id INT AUTO_INCREMENT PRIMARY KEY,
-    cart_id INT NOT NULL,  -- Foreign key to carts table
-    product_id INT NOT NULL,  -- Foreign key to products table
+    cart_item_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    cart_id BIGINT NOT NULL,  -- Foreign key to carts table
+    product_id BIGINT NOT NULL,  -- Foreign key to products table
     quantity INT NOT NULL,  -- Quantity of the product in the cart
     FOREIGN KEY (cart_id) REFERENCES carts(cart_id) ON DELETE CASCADE,
     FOREIGN KEY (product_id) REFERENCES products(product_id)
