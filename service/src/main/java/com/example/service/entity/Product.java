@@ -28,7 +28,16 @@ public class Product {
     private Integer stock;
 
     @Column(nullable = false)
-    private Double price;
+    private Double originalPrice;
+
+    @Column(nullable = false)
+    private Double discountPrice;
+
+    @Column(nullable = false)
+    private Boolean isSpecial;
+
+    @Column(nullable = false)
+    private Boolean isBestSeller;
 
     private LocalDateTime createdAt;
 
@@ -77,12 +86,28 @@ public class Product {
         this.stock = stock;
     }
 
-    public Double getPrice() {
-        return price;
+    public Double getOriginalPrice() {
+        return originalPrice;
     }
 
-    public void setPrice(Double price) {
-        this.price = price;
+    public void setOriginalPrice(Double originalPrice) {
+        this.originalPrice = originalPrice;
+    }
+
+    public Double getDiscountedPrice() {
+        return originalPrice;
+    }
+
+    public void setDiscountPrice(Double discountPrice) {
+        this.discountPrice= discountPrice;
+    }
+
+    public Boolean getIsSpecial() {
+        return isSpecial;
+    }
+
+    public void setIsSpecial(Boolean isSpecial) {
+        this.isSpecial = isSpecial;
     }
 
     public LocalDateTime getCreatedAt() {

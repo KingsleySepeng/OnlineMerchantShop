@@ -5,7 +5,11 @@ USE shopdb;
 CREATE TABLE users (
     user_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
+    first_name VARCHAR(50) NOT NULL UNIQUE,
+    last_name VARCHAR(50) NOT NULL UNIQUE,
+    username VARCHAR(50) NOT NULL UNIQUE,
     email VARCHAR(100) NOT NULL UNIQUE,
+    phone VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,  -- For hashed passwords
     role ENUM('customer', 'admin') DEFAULT 'customer',  -- Role management
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -19,7 +23,10 @@ CREATE TABLE products (
     description TEXT,
     image_url VARCHAR(255),  -- URL to the product image
     stock INT NOT NULL DEFAULT 0,  -- Quantity of products in stock
-    price DECIMAL(10, 2) NOT NULL,  -- Price of the product
+    original_price DECIMAL(10, 2) NOT NULL,  -- Price of the product
+    discount_price DECIMAL(10, 2) NOT NULL,  -- Price of the product
+    is_special BOOLEAN NULL, -- Is the product special
+    is_best_seller BOOLEAN NULL, -- Is the product best seller
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP NULL DEFAULT NULL  -- Soft delete field

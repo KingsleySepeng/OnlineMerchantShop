@@ -4,12 +4,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.jaxb.SpringDataJaxb.OrderDto;
+import org.springframework.data.domain.jaxb.SpringDataJaxb.Order;
 import org.springframework.stereotype.Service;
 
-import com.example.service.dto.OrderDTO;
 import com.example.service.entity.Order;
-import com.example.service.mapper.OrderMapper;
 import com.example.service.repository.OrderRepository;
 import com.example.service.service.interfaces.OrderService;
 
@@ -22,29 +20,29 @@ public class OrderServiceImpl implements OrderService {
     private OrderMapper orderMapper;
 
     @Override
-    public List<OrderDTO> getAllOrders() {
+    public List<Order> getAllOrders() {
         return orderRepository.findAll().stream()
-                .map(orderMapper::orderToOrderDTO)
+                .map(orderMapper::orderToOrder)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public OrderDTO getOrderById(Long id) {
+    public Order getOrderById(Long id) {
         return orderRepository.findById(id)
-                .map(orderMapper::orderToOrderDTO)
+                .map(orderMapper::orderToOrder)
                 .orElse(null);
     }
 
     @Override
-    public OrderDTO createOrder(OrderDTO orderDTO) {
-        Order order = orderMapper.orderDTOToOrder(orderDTO);  // Convert DTO to entity
+    public Order createOrder(Order order) {
+        Order order = orderMapper.orderToOrder(order);  // Convert DTO to entity
         Order savedOrder = orderRepository.save(order);  // Save the entity
-        return orderMapper.orderToOrderDTO(savedOrder);  // Convert entity back to DTO and return
+        return orderMapper.orderToOrder(savedOrder);  // Convert entity back to DTO and return
     }
 
     @Override
-    public void updateOrder(Long id, OrderDTO orderDTO) {
-        Order order = orderMapper.orderDTOToOrder(orderDTO);
+    public void updateOrder(Long id, Order order) {
+        Order order = orderMapper.orderToOrder(order);
         order.setOrderId(id);
         orderRepository.save(order);
     }

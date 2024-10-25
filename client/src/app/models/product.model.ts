@@ -1,35 +1,15 @@
 export class Product {
-    private _id: number;
-    private _name: string;
-    private _description: string;
-    private _imageUrl: string;
-    private _stock: number;
-    private _originalPrice: number;
-    private _discountedPrice: number;
-    private _isSpecial: boolean;
-    private _isBestSeller: boolean;
-
     constructor(
-        id: number,
-        name: string,
-        description: string,
-        imageUrl: string,
-        stock: number,
-        originalPrice: number,
-        discountedPrice: number,
-        isSpecial: boolean,
-        isBestSeller: boolean
-    ) {
-        this._id = id;
-        this._name = name;
-        this._description = description;
-        this._imageUrl = imageUrl;
-        this._stock = stock;
-        this._originalPrice = originalPrice;
-        this._discountedPrice = discountedPrice;
-        this._isSpecial = isSpecial;
-        this._isBestSeller = isBestSeller;
-    }
+        private _id: number,
+        private _name: string = '',
+        private _description: string = '',
+        private _imageUrl: string = 'default.png',
+        private _stock: number = 0,
+        private _originalPrice: number = 0.0,
+        private _discountedPrice: number = 0.0,
+        private _isSpecial: boolean = false,
+        private _isBestSeller: boolean = false
+      ) {}
 
     // Getters and Setters
     get id(): number {

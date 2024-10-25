@@ -5,12 +5,10 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.service.dto.CartDTO;
 import com.example.service.entity.Cart;
 import com.example.service.entity.CartItem;
 import com.example.service.entity.Product;
 import com.example.service.entity.User;
-import com.example.service.mapper.CartMapper;
 import com.example.service.repository.CartItemRepository;
 import com.example.service.repository.CartRepository;
 import com.example.service.repository.ProductRepository;
@@ -35,13 +33,12 @@ public class CartServiceImpl implements CartService {
     private CartMapper cartMapper;
 
     @Override
-    public CartDTO getCartByUserId(Long userId) {
+    public Cart getCartByUserId(Long userId) {
         Optional<User> userOptional = userRepository.findById(userId);  // Fetch User by userId
 
         if (userOptional.isPresent()) {
             User user = userOptional.get();
             return cartRepository.findByUser(user)  // Now pass the User object
-                    .map(cartMapper::cartToCartDTO)
                     .orElse(null);
         }
 

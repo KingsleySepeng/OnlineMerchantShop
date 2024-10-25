@@ -2,10 +2,12 @@ export class User {
 
   constructor(
     private _id: number = 0,
+    private _userName: string = '',
     private _firstName: string = '',
     private _lastName: string='',
     private _email: string='',
     private _password: string='',
+    private _role:string='',
     private _phone: string='',
   ) { }
 
@@ -16,6 +18,15 @@ export class User {
   set id(value: number) {
     this._id = value;
   }
+
+  get userName(): string {
+    return this._userName;
+  }
+
+  set userName(value: string) {
+    this._userName = value;
+  }
+
 
   get firstName(): string {
     return this._firstName;
@@ -48,6 +59,15 @@ export class User {
   set password(value: string) {
     this._password = value;
   }
+
+  get role(): string {
+    return this._role;
+  }
+
+  set role(value: string) {
+    this._role = value;
+  }
+
 
   get phone(): string {
     return this._phone;

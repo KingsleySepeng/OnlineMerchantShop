@@ -20,6 +20,12 @@ public class User {
 
     @Column(nullable = false, unique = true)
     private String username;
+    
+    @Column(nullable = false, unique = true)
+    private String firstName;
+
+    @Column(nullable = false, unique = true)
+    private String lastName;
 
     @Column(nullable = false, unique = true)
     private String email;
@@ -30,6 +36,9 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
+
+    @Column(nullable = false)
+    private String phone;
 
     private LocalDateTime createdAt;
 
@@ -56,6 +65,22 @@ public class User {
         this.username = username;
     }
 
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
     public String getEmail() {
         return email;
     }
@@ -70,6 +95,14 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 
     public Role getRole() {

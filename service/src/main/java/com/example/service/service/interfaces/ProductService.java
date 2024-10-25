@@ -2,12 +2,12 @@ package com.example.service.service.interfaces;
 
 import java.util.List;
 
-import com.example.service.dto.ProductDTO;
+import com.example.service.entity.Product;
 
 public interface ProductService {
- List<ProductDTO> getAllProducts();
-    ProductDTO getProductById(Long id);
-    ProductDTO createProduct(ProductDTO productDTO);
-    void updateProduct(Long id, ProductDTO productDTO);
+ List<Product> getAllProducts();
+    Product getProductById(Long id);
+    Product createProduct(Product product);
+    void updateProduct(Long id, Product product);
     void deleteProduct(Long id);
 }

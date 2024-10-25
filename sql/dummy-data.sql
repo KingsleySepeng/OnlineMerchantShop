@@ -1,7 +1,7 @@
 USE shopdb;
 
 -- Insert users
-INSERT INTO users (username, email, password, role) VALUES
+INSERT INTO users (first_name,last_name,username,email,phone, password, role) VALUES
 ('john_doe', 'john@example.com', 'hashedpassword1', 'customer'),
 ('jane_doe', 'jane@example.com', 'hashedpassword2', 'customer'),
 ('admin_user', 'admin@example.com', 'hashedpassword3', 'admin');
