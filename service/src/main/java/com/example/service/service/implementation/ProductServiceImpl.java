@@ -32,7 +32,6 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public void updateProduct(Long id, Product product) {
-        Product product = productMapper.productToProduct(product);
         product.setProductId(id);
         productRepository.save(product);
     }

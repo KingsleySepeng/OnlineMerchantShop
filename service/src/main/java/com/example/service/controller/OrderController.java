@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.service.dto.OrderDTO;
+import com.example.service.entity.Order;
 import com.example.service.service.interfaces.OrderService;
 
 @RestController
@@ -31,32 +31,37 @@ public class OrderController {
     }
 
     @PostMapping
-    public ResponseEntity<OrderDTO> createOrder(@RequestBody OrderDTO orderDTO) {
-        OrderDTO createdOrder = orderService.createOrder(orderDTO);
+    public ResponseEntity<Order> createOrder(@RequestBody Order order) { // TODO: CREATE ORDER ONLY AFTER CHECKOUT.
+        Order createdOrder = orderService.createOrder(order);
+        logger.info("ORDER_CONTROLLER -- CREATED ORDER: {}", createdOrder);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdOrder);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<OrderDTO> getOrderById(@PathVariable Long id) {
-        OrderDTO order = orderService.getOrderById(id);
+    public ResponseEntity<Order> getOrderById(@PathVariable Long id) { // TODO: GET ORDERS BY USER ID.
+        Order order = orderService.getOrderById(id);
+        logger.info("ORDER_CONTROLLER -- GET ORDER BY ID : {}", order);
         return ResponseEntity.ok(order);
     }
 
     @GetMapping
-    public ResponseEntity<List<OrderDTO>> getAllOrders() {
-        List<OrderDTO> orders = orderService.getAllOrders();
+    public ResponseEntity<List<Order>> getAllOrders() {
+        List<Order> orders = orderService.getAllOrders();
+        logger.info("ORDER_CONTROLLER -- GET ALL ORDERS: {}",orders);
         return ResponseEntity.ok(orders);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<OrderDTO> updateOrder(@PathVariable Long id, @RequestBody OrderDTO orderDTO) {
-        orderService.updateOrder(id, orderDTO);
-        return ResponseEntity.ok(orderDTO);
+    public ResponseEntity<Order> updateOrder(@PathVariable Long id, @RequestBody Order order) {
+        orderService.updateOrder(id, order);
+        logger.info("ORDER_CONTROLLER -- UPDATE ORDER BY ID : {}",order);
+        return ResponseEntity.ok(order);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
-        orderService.deleteOrder(id);
+       orderService.deleteOrder(id);
+        logger.info("ORDER_CONTROLLER -- DELETEING ORDER BY ID: {}", id);
         return ResponseEntity.noContent().build();
     }
 }

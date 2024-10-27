@@ -17,11 +17,12 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.example.service.dto.ProductDTO;
+
+import com.example.service.entity.Product;
 import com.example.service.service.interfaces.ProductService;
 
-@RestController
 @RequestMapping("/api/products")
+@RestController
 public class ProductController {
 
     private final ProductService productService;
@@ -33,32 +34,37 @@ public class ProductController {
     }
 
     @PostMapping
-    public ResponseEntity<ProductDTO> createProduct(@RequestBody ProductDTO productDTO) {
-        ProductDTO createdProduct = productService.createProduct(productDTO);
+    public ResponseEntity<Product> createProduct(@RequestBody Product product) {
+        Product createdProduct = productService.createProduct(product);
+        logger.info("PRODUCT_CONTROLLER -- CREATED PRODUCT: {} ",createdProduct);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdProduct);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProductDTO> getProductById(@PathVariable Long id) {
-        ProductDTO product = productService.getProductById(id);
+    public ResponseEntity<Product> getProductById(@PathVariable Long id) {
+        Product product = productService.getProductById(id);
+        logger.info("PRODUCT_CONTROLLER -- GETTING PRODUCT BY ID: {}", product);
         return ResponseEntity.ok(product);
     }
 
     @GetMapping
-    public ResponseEntity<List<ProductDTO>> getAllProducts() {
-        List<ProductDTO> products = productService.getAllProducts();
+    public ResponseEntity<List<Product>> getAllProducts() {
+        List<Product> products = productService.getAllProducts();
+        logger.info("PRODUCT_CONTROLLER -- GETTING ALL PRODUCTS: {}", products);
         return ResponseEntity.ok(products);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ProductDTO> updateProduct(@PathVariable Long id, @RequestBody ProductDTO productDTO) {
-        productService.updateProduct(id, productDTO);
-        return ResponseEntity.ok(productDTO);
+    public ResponseEntity<Product> updateProduct(@PathVariable Long id, @RequestBody Product product) {
+        productService.updateProduct(id, product);
+        logger.info("PRODUCT_CONTROLLER -- UPDATED PRODUCT: {}", product);
+        return ResponseEntity.ok(product);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
+        logger.info("PRODUCT_CONTROLLER -- DELETED PRODUCT WITH ID: {}", id);
         return ResponseEntity.noContent().build();
     }
 }

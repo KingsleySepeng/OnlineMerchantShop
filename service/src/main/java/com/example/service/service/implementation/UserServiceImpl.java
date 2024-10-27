@@ -7,9 +7,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.service.dto.UserDTO;
 import com.example.service.entity.User;
-import com.example.service.mapper.UserMapper;
 import com.example.service.repository.UserRepository;
 import com.example.service.service.interfaces.UserService;
 
@@ -19,33 +17,24 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private UserRepository userRepository;
 
-    @Autowired
-    private UserMapper userMapper;
-
     @Override
-    public List<UserDTO> getAllUsers() {
-        return userRepository.findAll().stream()
-                .map(userMapper::userToUserDTO)
-                .collect(Collectors.toList());
+    public List<User> getAllUsers() {
+        return userRepository.findAll().stream().collect(Collectors.toList());
     }
 
     @Override
-    public UserDTO getUserById(Long id) {
-        return userRepository.findById(id)
-                .map(userMapper::userToUserDTO)
-                .orElse(null);
+    public User getUserById(Long id) {
+        return userRepository.findById(id).orElse(null);
     }
 
     @Override
-    public UserDTO createUser(UserDTO userDTO) {
-        User user = userMapper.userDTOToUser(userDTO);  // Convert DTO to entity
-        User savedUser = userRepository.save(user);  // Save the user and get the saved entity
-        return userMapper.userToUserDTO(savedUser);
+    public User createUser(User user) {
+        return userRepository.save(user);  // Save the user and get the saved entity
+       
     }
 
     @Override
-    public void updateUser(Long id, UserDTO userDTO) {
-        User user = userMapper.userDTOToUser(userDTO);
+    public void updateUser(Long id, User user) {
         user.setUserId(id);
         userRepository.save(user);
     }
@@ -57,7 +46,7 @@ public class UserServiceImpl implements UserService {
 
      // Login method using email and password
      @Override
-     public Optional<UserDTO> login(String email, String password) {
+     public Optional<User> login(String email, String password) {
          // Fetch user by email
          Optional<User> userOptional = userRepository.findByEmail(email);
          
@@ -66,7 +55,7 @@ public class UserServiceImpl implements UserService {
              
              // Check if the password matches
              if (user.getPassword().equals(password)) {
-                 return Optional.of(userMapper.userToUserDTO(user));  // Return UserDTO if successful
+                 return Optional.of(user);  // Return UserDTO if successful
              }
          }
          

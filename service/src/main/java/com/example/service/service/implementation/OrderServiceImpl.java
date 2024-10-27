@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.jaxb.SpringDataJaxb.Order;
 import org.springframework.stereotype.Service;
 
 import com.example.service.entity.Order;
@@ -16,33 +15,25 @@ public class OrderServiceImpl implements OrderService {
 @Autowired
     private OrderRepository orderRepository;
 
-    @Autowired
-    private OrderMapper orderMapper;
+ 
 
     @Override
     public List<Order> getAllOrders() {
-        return orderRepository.findAll().stream()
-                .map(orderMapper::orderToOrder)
-                .collect(Collectors.toList());
+        return orderRepository.findAll().stream() .collect(Collectors.toList());
     }
 
     @Override
     public Order getOrderById(Long id) {
-        return orderRepository.findById(id)
-                .map(orderMapper::orderToOrder)
-                .orElse(null);
+        return orderRepository.findById(id).orElse(null);
     }
 
     @Override
     public Order createOrder(Order order) {
-        Order order = orderMapper.orderToOrder(order);  // Convert DTO to entity
-        Order savedOrder = orderRepository.save(order);  // Save the entity
-        return orderMapper.orderToOrder(savedOrder);  // Convert entity back to DTO and return
+        return orderRepository.save(order);  // Save the entity
     }
 
     @Override
     public void updateOrder(Long id, Order order) {
-        Order order = orderMapper.orderToOrder(order);
         order.setOrderId(id);
         orderRepository.save(order);
     }

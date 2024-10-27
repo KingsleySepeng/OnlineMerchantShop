@@ -29,9 +29,6 @@ public class CartServiceImpl implements CartService {
     @Autowired
     private UserRepository userRepository;  // Add UserRepository for fetching User
 
-    @Autowired
-    private CartMapper cartMapper;
-
     @Override
     public Cart getCartByUserId(Long userId) {
         Optional<User> userOptional = userRepository.findById(userId);  // Fetch User by userId

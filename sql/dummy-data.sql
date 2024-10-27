@@ -1,11 +1,10 @@
-USE
-shopdb;
+USE shopdb;
 
 -- Insert users
 INSERT INTO users (username, first_name, last_name, email, phone, password, role)
-VALUES ('john_doe', 'John', 'Doe', 'john@example.com', '1234567890', 'hashedpassword1', 'customer'),
-       ('jane_doe', 'Jane', 'Doe', 'jane@example.com', '0987654321', 'hashedpassword2', 'customer'),
-       ('admin_user', 'Admin', 'User', 'admin@example.com', '1122334455', 'hashedpassword3', 'admin');
+VALUES ('john_doe', 'John', 'Doe', 'john@example.com', '1234567890', 'hashedpassword1', 'CUSTOMER'),
+       ('jane_doe', 'Jane', 'Doe', 'jane@example.com', '0987654321', 'hashedpassword2', 'CUSTOMER'),
+       ('admin_user', 'Admin', 'User', 'admin@example.com', '1122334455', 'hashedpassword3', 'ADMIN');
 
 -- Insert products
 INSERT INTO products (name, description, image_url, stock, original_price, discount_price, is_special, is_best_seller)
@@ -15,8 +14,8 @@ VALUES ('Product 1', 'Description for Product 1', 'https://example.com/product1.
 
 -- Insert orders
 INSERT INTO orders (user_id, total_amount, status)
-VALUES (1, 49.98, 'pending'), -- Assuming user_id 1 is John Doe
-       (2, 29.99, 'shipped');
+VALUES (1, 49.98, 'PENDING'), -- Assuming user_id 1 is John Doe
+       (2, 29.99, 'SHIPPED');
 -- Assuming user_id 2 is Jane Doe
 
 -- Insert order items
