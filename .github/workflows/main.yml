@@ -26,7 +26,7 @@ jobs:
 
     - name: Build Spring Boot project
       run: |
-        cd backend # Adjust the path to where your backend code is located
+        cd service # Adjust the path to where your backend code is located
         ./gradlew build -x test # Skip tests
 
     - name: Set up Node.js
@@ -44,7 +44,7 @@ jobs:
 
     - name: Build Angular project
       run: |
-        cd frontend # Adjust the path to where your frontend code is located
+        cd  client # Adjust the path to where your frontend code is located
         npm install
         npm run build
 
