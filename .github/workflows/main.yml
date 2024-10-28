@@ -32,7 +32,7 @@ jobs:
     - name: Set up Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: '16' # Match the Node.js version with your environment
+        node-version: '18.9' # Match the Node.js version with your environment
 
     - name: Cache Node modules
       uses: actions/cache@v3
