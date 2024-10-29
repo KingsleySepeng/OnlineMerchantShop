@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.service.entity.User;
+import com.example.service.entity.User.Role;
 import com.example.service.repository.UserRepository;
 import com.example.service.service.interfaces.UserService;
 
@@ -29,8 +30,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User createUser(User user) {
-        user.username = firstName + lastName;
-        user.role = 'CUSTOMER' ;
+        String username = user.getFirstName() + user.getLastName();
+        
+        user.setUsername(username);
+        user.setRole(Role.CUSTOMER); 
         return userRepository.save(user);  // Save the user and get the saved entity
        
     }
