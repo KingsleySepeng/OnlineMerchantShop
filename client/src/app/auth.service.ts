@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import { catchError, map, Observable, of } from 'rxjs';
+import { catchError, map, Observable, of, throwError } from 'rxjs';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { User } from './models/user';
 
 @Injectable({
   providedIn: 'root'
@@ -8,7 +9,8 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 export class AuthService {
 
   private apiUrl = 'http://localhost:8080/api/users/login';
-private loggedIn: boolean = false;
+  private signUpApiUrl = 'http://localhost:8080/api/users/signup';
+  private loggedIn: boolean = false;
   private storageKey = 'isLoggedIn'
 
   constructor(private http:HttpClient) {
@@ -29,7 +31,8 @@ private loggedIn: boolean = false;
 
   login(email:string,password:string):Observable<any>{
     const credentials = {email,password};
-    return this.http.post<any>(this.apiUrl,credentials).pipe(
+    const headers = new HttpHeaders({'Content-type':'application/json'});
+    return this.http.post<any>(this.apiUrl,credentials,{headers}).pipe(
       map(response=>{
         if(response){
           this.setLoginStatus(true);
@@ -39,7 +42,24 @@ private loggedIn: boolean = false;
       }),
       catchError(error=>{
         this.setLoginStatus(false);
-        return of(null);
+        return throwError(()=> new Error(error.error || 'Server error'));
+      })
+    );
+  }
+
+  signup(user:User):Observable<any> {
+    const headers = new HttpHeaders({'Content-type':'application/json'});
+    return this.http.post<any>('http://localhost:8080/api/users/signup',user,{headers}).pipe(
+      map(response=>{
+        if(response){
+          this.setLoginStatus(true);
+          return response;
+        }
+        throw new Error('SIGNUP ERROR');
+      }),
+      catchError(error=>{
+        this.setLoginStatus(false);
+        return throwError(()=> new Error(error.error || 'Server error'));
       })
     );
   }

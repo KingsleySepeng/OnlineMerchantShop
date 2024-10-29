@@ -47,18 +47,30 @@ isPasswordWarning: boolean = false;
       this.successMessage = this.passwordMessage;
       return;
     }
-    this.successMessage = 'you will be redirected to the main page shortly ';
-      console.log("SignUp successfull")
-      this.isWarning = false;
-      this.isSuccess = true;
-      setTimeout(()=>{
-        this.authService.setLoginStatus(true);
-        this.router.navigate(['main-page']);
-      },2000);
-      console.log( this.user); 
-    
-    
-  }
+
+    this.authService.signup(this.user).subscribe(
+      response=>{
+        if(response){
+          this.successMessage = 'you will be redirected to the main page shortly ';
+            console.log("SignUp successfull")
+            this.isWarning = false;
+            this.isSuccess = true;
+            setTimeout(()=>{
+              this.authService.setLoginStatus(true);
+              this.router.navigate(['main-page']);
+            },2000);
+            console.log( this.user); 
+        }else {
+          console.log("Login not successfull")
+          this.successMessage = "Please make sure you have entered the correct credentials!";
+          this.isSuccess = false;
+          this.isWarning = true;
+        }
+        },
+        error=>{
+          this.successMessage = "Error occured during login";
+      }
+    )}
 
   checkPassword(): void {
     if (!this.user.password || !this.duplicatePassword) {

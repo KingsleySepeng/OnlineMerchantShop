@@ -29,6 +29,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User createUser(User user) {
+        user.username = firstName + lastName;
+        user.role = 'CUSTOMER' ;
         return userRepository.save(user);  // Save the user and get the saved entity
        
     }

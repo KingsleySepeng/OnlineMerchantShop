@@ -31,7 +31,7 @@ ngOnInit():void{}
 
   login(form:any): void{
     if(form.valid){
-      this.authService.login("king.sep@gmail.com","1234").subscribe(
+      this.authService.login(this.user.email,this.user.password).subscribe(
         response=>{
           if(response){
             this.successMessage = "Login successfull, you'll be redirected to the main page shortly";
