@@ -31,7 +31,7 @@ export class AuthService {
 
   login(email:string,password:string):Observable<any>{
     const credentials = {email,password};
-    const headers = new HttpHeaders({'Content-type':'application/json'});
+    const headers = new HttpHeaders({'Content-Type':'application/json'});
     return this.http.post<any>(this.apiUrl,credentials,{headers}).pipe(
       map(response=>{
         if(response){
@@ -48,7 +48,7 @@ export class AuthService {
   }
 
   signup(user:User):Observable<any> {
-    const headers = new HttpHeaders({'Content-type':'application/json'});
+    const headers = new HttpHeaders({'Content-Type':'application/json'});
     return this.http.post<any>('http://localhost:8080/api/users/signup',user,{headers}).pipe(
       map(response=>{
         if(response){

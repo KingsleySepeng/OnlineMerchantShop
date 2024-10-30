@@ -61,14 +61,16 @@ isPasswordWarning: boolean = false;
             },2000);
             console.log( this.user); 
         }else {
-          console.log("Login not successfull")
+          console.log("Sign up not successfull")
           this.successMessage = "Please make sure you have entered the correct credentials!";
           this.isSuccess = false;
           this.isWarning = true;
         }
         },
         error=>{
-          this.successMessage = "Error occured during login";
+          this.successMessage = "Error occured during signup";
+          this.isSuccess = false;
+          this.isWarning = true;
       }
     )}
 

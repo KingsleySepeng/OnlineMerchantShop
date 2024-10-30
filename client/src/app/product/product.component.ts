@@ -25,7 +25,14 @@ ngOnInit() {
   const id =this.route.snapshot.paramMap.get('id');
   if(id){
     this.productId=+id;
-    this.product = this.productService.getProductId(this.productId);
+    this.productService.getProductId(this.productId).subscribe({
+      next:(data)=>{
+        this.product = data;
+      },
+      error:(error)=>{
+        console.error('Failed to load product: ',error);
+      }
+    });
   }
 }
 

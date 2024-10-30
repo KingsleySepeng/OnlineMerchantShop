@@ -19,16 +19,19 @@ export class MainpageComponent implements OnInit{
 
   constructor(private router: Router, public authService:AuthService,private cartService:CartService,private productService:ProductService) { }
   products:Product[]=[];
-
-    ngOnInit(): void {
-  this.products = this.productService.getAllProducts();  }
   productAddedMessage:string='';
 
-  // products: Product[] = [
-  //   new Product(1, 'Product 1','Description 1', 'https://via.placeholder.com/300x200', 10, 12.00, 10.00, true, true),
-  //   new Product(2, 'Product 2','Description 1', 'https://via.placeholder.com/300x200', 5, 15.00, 13.00, false, true),
-  //   new Product(3, 'Product 3','Description 1', 'https://via.placeholder.com/300x200', 8, 18.00, 16.00, true, false),
-  // ];
+    ngOnInit(): void {
+  this.productService.getAllProducts().subscribe({
+  next:(data)=>{
+    this.products = data;
+  },
+  error:(error)=>{
+    console.error('Failed to load products: ',error);
+  }
+})
+}
+
 
 
  addToCart(product:Product){
