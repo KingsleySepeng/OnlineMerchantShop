@@ -20,14 +20,18 @@ export class MainpageComponent implements OnInit{
   constructor(private router: Router, public authService:AuthService,private cartService:CartService,private productService:ProductService) { }
   products:Product[]=[];
   productAddedMessage:string='';
+  loading:boolean = false;
 
     ngOnInit(): void {
+    this.loading = false;
   this.productService.getAllProducts().subscribe({
   next:(data)=>{
     this.products = data;
+    this.loading = false;
   },
   error:(error)=>{
     console.error('Failed to load products: ',error);
+    this.loading = false;
   }
 })
 }
