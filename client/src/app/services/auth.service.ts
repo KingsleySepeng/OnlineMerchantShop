@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { catchError, map, Observable, of, throwError } from 'rxjs';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { User } from './models/user';
+import { User } from '../models/user';
 
 @Injectable({
   providedIn: 'root'
@@ -48,8 +48,9 @@ export class AuthService {
   }
 
   signup(user:User):Observable<any> {
+    console.log('User Data in service method',user);
     const headers = new HttpHeaders({'Content-Type':'application/json'});
-    return this.http.post<any>('http://localhost:8080/api/users/signup',user,{headers}).pipe(
+    return this.http.post<any>(this.signUpApiUrl,user,{headers}).pipe(
       map(response=>{
         if(response){
           this.setLoginStatus(true);
@@ -58,8 +59,10 @@ export class AuthService {
         throw new Error('SIGNUP ERROR');
       }),
       catchError(error=>{
+        console.log('Signup error', error.error.message || error.message);
         this.setLoginStatus(false);
-        return throwError(()=> new Error(error.error || 'Server error'));
+        let errorMessage = error.error.message || 'Server error'
+        return throwError(()=> new Error(errorMessage));
       })
     );
   }

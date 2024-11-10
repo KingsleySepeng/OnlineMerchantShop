@@ -10,4 +10,5 @@ List<Order> getAllOrders();
     Order createOrder(Order order);
     void updateOrder(Long id, Order order);
     void deleteOrder(Long id);
+    Order processOrder(Order order) throws Exception;
 }

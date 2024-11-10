@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { Product } from '../models/product.model';
-import { CartService } from '../cart.service';
+import { CartService } from '../services/cart.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ProductService } from '../product.service';
+import { ProductService } from '../services/product.service';
 
 @Component({
   selector: 'app-product',

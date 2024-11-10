@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +19,7 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserRepository userRepository;
+    private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
     @Override
     public List<User> getAllUsers() {
@@ -30,10 +33,15 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User createUser(User user) {
-        String username = user.getFirstName() + user.getLastName();
-        
-        user.setUsername(username);
+        user.setUsername( user.getFirstName());
         user.setRole(Role.CUSTOMER); 
+        // user.setEmail("userdb@gmail.com");
+        // user.setUsername("usernamedb");
+        // user.setFirstName("namedb@gmail.com");
+        // user.setLastName("namedb@gmail.com");
+        // user.setPhone("123467890");
+        // user.setPassword("passworddb");  // Hashing the password before saving
+        // logger.info("USER SERVICE: {}", user.getEmail() + user.getRole());     
         return userRepository.save(user);  // Save the user and get the saved entity
        
     }

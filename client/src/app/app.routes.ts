@@ -7,7 +7,7 @@ import {CartComponent} from "./cart/cart.component";
 import {CheckoutComponent} from "./checkout/checkout.component";
 import {LogoutComponent} from "./logout/logout.component";
 import {ProductComponent} from "./product/product.component";
-import { AuthGaurd } from './auth.guard';
+import { AuthGaurd } from './services/auth.guard';
 import { OrderSucessComponent } from './order-sucess/order-sucess.component';
 
 export const routes: Routes = [

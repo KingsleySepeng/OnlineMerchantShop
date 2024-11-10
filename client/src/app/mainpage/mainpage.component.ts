@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import {Router, RouterLink} from "@angular/router";
-import { AuthService } from '../auth.service';
 import {CommonModule} from '@angular/common';
 import { Product } from '../models/product.model';
-import { CartService } from '../cart.service';
-import { ProductService } from '../product.service';
+import { CartService } from '../services/cart.service';
+import { ProductService } from '../services/product.service';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-mainpage',
@@ -23,7 +23,7 @@ export class MainpageComponent implements OnInit{
   loading:boolean = false;
 
     ngOnInit(): void {
-    this.loading = false;
+    this.loading = true;
   this.productService.getAllProducts().subscribe({
   next:(data)=>{
     this.products = data;

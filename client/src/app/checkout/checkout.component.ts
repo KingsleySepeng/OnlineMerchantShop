@@ -1,9 +1,12 @@
 import { Component } from '@angular/core';
 import { CartItem } from '../models/cart-item';
-import { CartService } from '../cart.service';
+import { CartService } from '../services/cart.service';
 import {Router} from "@angular/router";
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { CheckoutService } from '../services/checkout.service';
+import { map, Observable, switchMap, tap } from 'rxjs';
+import { Order } from '../models/order.model';
 
 @Component({
   selector: 'app-checkout',
@@ -28,7 +31,7 @@ export class CheckoutComponent {
   constructor(private cartService:CartService,private router:Router){}
 
   ngOnInit(){
-    this.cartItems = this.cartService.getCartItems();
+    // this.cartItems = this.cartService.getCartItems();
     this.calculateTotal();
   }
 

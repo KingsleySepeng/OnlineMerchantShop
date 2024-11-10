@@ -3,7 +3,7 @@ import {Router} from "@angular/router";
 import {User} from "../models/user";
 import {FormsModule} from "@angular/forms";
 import {NgClass, NgStyle} from "@angular/common";
-import { AuthService } from '../auth.service';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-signup',
@@ -26,14 +26,24 @@ isPasswordSuccess: boolean = false;
 isPasswordWarning: boolean = false;
 
   constructor(private router:Router,private authService:AuthService) {
-  this.user = new User();
+  this.user = {
+    id: 0,
+    userName: '',
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    role: '',
+    phone: ''
+  };
   }
 
   ngOnInit(): void {
   }
 
   registerUser():void{
-    if(this.user === null|| !this.user.password || !this.duplicatePassword){
+    console.log('User Data',this.user);
+    if(!this.user || !this.user.email || !this.user.password || !this.user.firstName || !this.user.lastName || !this.user.phone){
       this.isWarning = true;
       this.isSuccess = false;
       this.successMessage = 'Please make sure everything is filled in.'
@@ -52,14 +62,13 @@ isPasswordWarning: boolean = false;
       response=>{
         if(response){
           this.successMessage = 'you will be redirected to the main page shortly ';
-            console.log("SignUp successfull")
+            console.log("SignUp successfull",this.user);
             this.isWarning = false;
             this.isSuccess = true;
             setTimeout(()=>{
               this.authService.setLoginStatus(true);
               this.router.navigate(['main-page']);
             },2000);
-            console.log( this.user); 
         }else {
           console.log("Sign up not successfull")
           this.successMessage = "Please make sure you have entered the correct credentials!";
@@ -68,6 +77,7 @@ isPasswordWarning: boolean = false;
         }
         },
         error=>{
+          console.log("Sign up not successfull",error)
           this.successMessage = "Error occured during signup";
           this.isSuccess = false;
           this.isWarning = true;

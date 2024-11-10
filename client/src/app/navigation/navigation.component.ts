@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
 import {Router, RouterLink, RouterLinkActive} from "@angular/router";
-import {AuthService} from "../auth.service";
 import {NgIf} from "@angular/common";
-import { CartService } from '../cart.service';
+import { CartService } from '../services/cart.service';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-navigation',

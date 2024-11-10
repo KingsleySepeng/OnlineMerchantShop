@@ -1,9 +1,10 @@
 import { Component, NgModule, OnInit } from '@angular/core';
 import {Router} from "@angular/router";
-import { CartService } from '../cart.service';
+import { CartService } from '../services/cart.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CartItem } from '../models/cart-item';
+import { map, Observable } from 'rxjs';
 
 @Component({
   selector: 'app-cart',
@@ -14,23 +15,29 @@ import { CartItem } from '../models/cart-item';
 })
 export class CartComponent implements OnInit{
 
-  cartItems:CartItem[]=[];
+  cartItems$:Observable<CartItem[]>;
   successMessage:String='';
   warningMessages:{[key:string]:string}={};
 
   constructor(private router:Router,private cartService:CartService) {
+    this.cartItems$ = this.cartService.getCartItems();
   }
 
-  ngOnInit():void{this.cartItems=this.cartService.getCartItems();}
+  ngOnInit():void{this.refreshCartItems();}
+
+  refreshCartItems():void{
+    this.cartItems$ = this.cartService.getCartItems();
+  }
 
   handleCheckout():void{
     this.router.navigate(['checkout'])
   }
 
   removeFromCart(item:CartItem){
-    this.cartService.removeFromCart(item);
-    this.cartItems = this.cartService.getCartItems();
-    this.successMessage = 'Cart updated successfully!';
+    this.cartService.removeFromCart(item).subscribe(()=>{
+      this.refreshCartItems();
+      this.successMessage = 'Cart updated successfully';
+    });
   }
 
   updateCart(){
@@ -40,15 +47,18 @@ export class CartComponent implements OnInit{
       this.successMessage = 'Please correct the quantities exceeding stock before updating the cart.';
       return;
     }
-    this.successMessage = '';
 
-    this.cartItems.forEach(item=>{
-       if(item.quantity<1){
-        item.quantity=1;
+    this.cartService.getCartItems().subscribe(items=>{
+    items.forEach(item=>{
+      if(item.quantity<1){
+        item.quantity = 1;
       }
-      this.cartService.updateCartItemQuantity(item,item.quantity);
+      this.cartService.updateCartItemQuantity(item,item.quantity).subscribe(()=>{
+        this.refreshCartItems();
+        this.successMessage = 'cart updated successfully';
+      });
     });
-    this.successMessage = 'Cart updated successfully!';
+    });
   }
 
   // Method to check if there are any warnings
@@ -64,21 +74,22 @@ export class CartComponent implements OnInit{
     }
   }
 
-  calculateTotal():string{
-    return this.cartItems
-    .reduce((total,item)=>total + item.getTotalPrice(),0)
-    .toFixed(2);
+  calculateTotal():Observable<number>{
+    return this.cartItems$.pipe(
+      map(items=> items.reduce((total,item)=>total + (item.product.discountedPrice * item.quantity),0))
+    );
   }
 
   // Clear the cart by using the CartService
   clearCart(): void {
-    this.cartService.clearCart();
-    this.cartItems = [];
-    this.successMessage = 'Cart cleared successfully!';
-    this.warningMessages = {};  // Clear any warnings when cart is cleared
+    this.cartService.clearCart().subscribe(()=>{
+      this.refreshCartItems();
+      this.successMessage = 'Cart cleared successfully!';
+      this.warningMessages = {};  // Clear any warnings when cart is cleared
+    });
   }
   
-  isCartEmpty():boolean{
-    return this.cartItems.length ===0;
+  isCartEmpty():Observable<boolean>{
+    return this.cartItems$.pipe(map(items=>items.length===0));
   }
 }

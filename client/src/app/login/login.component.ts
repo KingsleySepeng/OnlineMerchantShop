@@ -2,8 +2,8 @@ import {Component, OnInit} from '@angular/core';
 import {Router} from "@angular/router";
 import {FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
 import {NgClass, NgStyle} from "@angular/common";
-import {AuthService} from "../auth.service";
 import {User} from "../models/user";
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -23,9 +23,18 @@ export class LoginComponent implements OnInit{
   successMessage:String='';
   isWarning:Boolean = false;
   isSuccess:Boolean = false;
-  user:User;
+  user:User = {
+    id: 0,
+    userName: '',
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    role: '',
+    phone: '',
+  };
 
-  constructor(private router:Router,private authService:AuthService) {  this.user = new User();  }
+  constructor(private router:Router,private authService:AuthService) { }
 
 ngOnInit():void{}
 

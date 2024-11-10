@@ -27,8 +27,9 @@ public class UserController {
 
     @PostMapping("/signup")
     public ResponseEntity<User> signup(@RequestBody User user) {
+        logger.info("USER_CONTROLLER -- ATTEMPTING TO CREATE USER: {}", user.getEmail());
         User createdUser = userService.createUser(user);
-        logger.info("USER_CONTROLLER -- CREATED USER: {}", createdUser.getUsername());
+        logger.info("USER_CONTROLLER -- CREATED USER: {}", createdUser.getEmail());
         return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
     }
 
