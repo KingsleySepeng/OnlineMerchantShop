@@ -33,7 +33,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Order getOrderById(Long id) {
+    public Order getOrderById(Long id) { // should be findByUserId instead
         return orderRepository.findById(id).orElse(null);
     }
 
