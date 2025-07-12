@@ -10,4 +10,5 @@ public interface ProductService {
     Product createProduct(Product product);
     void updateProduct(Long id, Product product);
     void deleteProduct(Long id);
+    List<Product> searchProducts(String query);
 }

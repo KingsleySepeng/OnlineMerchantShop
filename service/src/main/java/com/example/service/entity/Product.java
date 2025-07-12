@@ -94,9 +94,9 @@ public class Product {
         this.originalPrice = originalPrice;
     }
 
-    public Double getDiscountedPrice() {
-        return originalPrice;
-    }
+     public Double getDiscountedPrice() {
+         return discountPrice;
+     }
 
     public void setDiscountPrice(Double discountPrice) {
         this.discountPrice= discountPrice;
@@ -108,6 +108,14 @@ public class Product {
 
     public void setIsSpecial(Boolean isSpecial) {
         this.isSpecial = isSpecial;
+    }
+
+    public Boolean getIsBestSeller() {
+        return isBestSeller;
+    }
+
+    public void setIsBestSeller(Boolean isBestSeller) {
+        this.isBestSeller = isBestSeller;
     }
 
     public LocalDateTime getCreatedAt() {

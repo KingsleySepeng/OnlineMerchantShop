@@ -5,12 +5,15 @@ import {CommonModule} from '@angular/common';
 import { Product } from '../models/product.model';
 import { CartService } from '../cart.service';
 import { ProductService } from '../product.service';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-mainpage',
   standalone: true,
   imports: [
-    RouterLink,CommonModule
+    RouterLink,
+    CommonModule,
+    FormsModule
   ],
   templateUrl: './mainpage.component.html',
   styleUrl: './mainpage.component.css'
@@ -19,9 +22,23 @@ export class MainpageComponent implements OnInit{
 
   constructor(private router: Router, public authService:AuthService,private cartService:CartService,private productService:ProductService) { }
   products:Product[]=[];
+  searchQuery:string='';
 
     ngOnInit(): void {
-  this.products = this.productService.getAllProducts();  }
+      this.loadProducts();
+    }
+
+  loadProducts(): void {
+    this.productService.getAllProducts().subscribe(data => this.products = data);
+  }
+
+  search(): void {
+    if(!this.searchQuery){
+      this.loadProducts();
+      return;
+    }
+    this.productService.searchProducts(this.searchQuery).subscribe(data => this.products = data);
+  }
   productAddedMessage:string='';
 
   // products: Product[] = [

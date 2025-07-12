@@ -25,7 +25,7 @@ ngOnInit() {
   const id =this.route.snapshot.paramMap.get('id');
   if(id){
     this.productId=+id;
-    this.product = this.productService.getProductId(this.productId);
+    this.productService.getProductId(this.productId).subscribe(p => this.product = p);
   }
 }
 

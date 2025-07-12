@@ -1,23 +1,25 @@
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import { Product } from './models/product.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProductService {
+  private apiUrl = 'http://localhost:8080/api/products';
 
-  products: Product[] = [
-    new Product(1, 'Product 1','Description 1', 'https://via.placeholder.com/300x200', 10, 12.00, 10.00, true, true),
-    new Product(2, 'Product 2','Description 1', 'https://via.placeholder.com/300x200', 5, 15.00, 13.00, false, true),
-    new Product(3, 'Product 3','Description 1', 'https://via.placeholder.com/300x200', 8, 18.00, 16.00, true, false),
-  ];
-  
-  getProductId(id: number) {
-    return this.products.find(product=>product.id===id);
+  constructor(private http: HttpClient) { }
+
+  getProductId(id: number): Observable<Product> {
+    return this.http.get<Product>(`${this.apiUrl}/${id}`);
   }
 
-  getAllProducts(){
-    return this.products;
+  getAllProducts(): Observable<Product[]> {
+    return this.http.get<Product[]>(this.apiUrl);
   }
-  constructor() { }
+
+  searchProducts(query: string): Observable<Product[]> {
+    return this.http.get<Product[]>(`${this.apiUrl}/search?query=${encodeURIComponent(query)}`);
+  }
 }
