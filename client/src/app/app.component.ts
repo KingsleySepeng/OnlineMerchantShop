@@ -1,11 +1,11 @@
-import {Component, inject} from '@angular/core';
-import { RouterOutlet } from '@angular/router';
-import {FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
+import {Component} from '@angular/core';
+import { FormsModule, ReactiveFormsModule} from "@angular/forms";
+import {RouterLink, RouterOutlet} from "@angular/router";
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [FormsModule, ReactiveFormsModule, RouterOutlet],
+  imports: [FormsModule, ReactiveFormsModule, RouterOutlet, RouterLink],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })

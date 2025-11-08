@@ -1,10 +1,12 @@
 import {Routes} from "@angular/router";
-import {LoginComponent} from "./components/login/login.component";
+import {ShopComponent} from "./shop/shop/shop.component";
+import {CheckoutComponent} from "./shop/checkout/checkout.component";
 
 
 export const routes: Routes = [
-  {path:'',pathMatch:'full',component:LoginComponent},
-
+  { path: '', component: ShopComponent },
+  { path: 'checkout', component: CheckoutComponent },
+  { path: '**', redirectTo: '' }
 
 ];
 
