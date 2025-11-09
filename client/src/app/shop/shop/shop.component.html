@@ -1,9 +1,108 @@
-<div *ngIf="loading" class="text-center">Loading...</div>
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" *ngIf="!loading">
-  <div *ngFor="let p of products" class="card">
-    <img [src]="p.image_url" alt="{{p.name}}" class="rounded-xl mb-3">
-    <div class="font-semibold text-lg">{{ p.name }}</div>
-    <div class="text-gray-600">R {{ (p.price_cents/100) | number:'1.0-0' }}</div>
-    <button class="btn btn-primary mt-3" (click)="add(p)">Add to cart</button>
+<div *ngIf="loading" class="flex flex-col items-center justify-center py-16 text-center">
+  <span class="pi pi-spin pi-spinner text-3xl text-primary"></span>
+  <p class="mt-3 text-sm text-gray-500">Loading products…</p>
+</div>
+
+<div *ngIf="!loading && error" class="card border border-red-200 bg-red-50 text-red-800">
+  <h2 class="text-lg font-semibold">We hit a snag</h2>
+  <p class="mt-2 text-sm">{{ error }}</p>
+  <button class="btn btn-primary mt-4 w-full md:w-auto" (click)="retry()">Try again</button>
+</div>
+
+<div *ngIf="!loading && !error">
+  <div class="card mb-6">
+    <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+      <label class="flex-1">
+        <span class="text-sm font-semibold text-gray-600">Search</span>
+        <input
+          class="card mt-1 w-full border border-gray-200 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
+          type="search"
+          placeholder="Search for a product"
+          [(ngModel)]="searchTerm"
+        />
+      </label>
+      <label class="md:w-64">
+        <span class="text-sm font-semibold text-gray-600">Sort by</span>
+        <select
+          class="card mt-1 w-full border border-gray-200 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
+          [(ngModel)]="sortOption"
+        >
+          <option value="featured">Featured</option>
+          <option value="price-asc">Price: Low to high</option>
+          <option value="price-desc">Price: High to low</option>
+          <option value="name">Name: A to Z</option>
+        </select>
+      </label>
+    </div>
+    <p class="mt-4 text-sm text-gray-500" *ngIf="filteredProducts.length">
+      Showing {{ filteredProducts.length }} {{ filteredProducts.length === 1 ? 'item' : 'items' }}.
+    </p>
+  </div>
+
+  <p *ngIf="filteredProducts.length === 0" class="text-center text-sm text-gray-500">
+    No products match your search. Adjust your filters to see more items.
+  </p>
+
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3" *ngIf="filteredProducts.length">
+    <div
+      *ngFor="let p of filteredProducts; trackBy: trackByProduct"
+      class="card flex h-full flex-col transition hover:-translate-y-1 hover:shadow-lg"
+    >
+      <img [src]="p.image_url" alt="{{p.name}}" class="mb-3 h-52 w-full rounded-xl object-cover" />
+      <div class="flex-1">
+        <div class="text-sm uppercase tracking-wide text-primary">Product #{{ p.id }}</div>
+        <div class="font-semibold text-lg">{{ p.name }}</div>
+        <div class="mt-1 text-gray-600">R {{ (p.price_cents/100) | number:'1.0-0' }}</div>
+      </div>
+      <div class="mt-4 flex flex-wrap items-center gap-2">
+        <button class="btn btn-primary flex-1" (click)="add(p)">
+          <span class="pi pi-shopping-cart mr-2"></span>
+          Add to cart
+        </button>
+        <button class="btn flex-1 border border-gray-200 bg-white" (click)="viewDetails(p)">
+          <span class="pi pi-search mr-2"></span>
+          Details
+        </button>
+      </div>
+      <div class="mt-2 text-xs font-medium text-green-600" *ngIf="lastAddedId === p.id">
+        Added to cart!
+      </div>
+    </div>
+  </div>
+</div>
+
+<div
+  *ngIf="selectedProduct as product"
+  class="fixed inset-0 z-20 flex items-center justify-center bg-black/70 p-4"
+>
+  <div class="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl">
+    <button
+      class="absolute right-4 top-4 text-gray-500 hover:text-gray-900"
+      type="button"
+      (click)="closeDetails()"
+    >
+      <span class="pi pi-times text-xl"></span>
+      <span class="sr-only">Close</span>
+    </button>
+    <img
+      [src]="product.image_url"
+      alt="{{ product.name }}"
+      class="mb-6 h-72 w-full rounded-2xl object-cover"
+    />
+    <h3 class="text-2xl font-semibold">{{ product.name }}</h3>
+    <p class="mt-2 text-lg text-primary">R {{ (product.price_cents || 0)/100 | number:'1.0-0' }}</p>
+    <p class="mt-4 text-sm text-gray-600">
+      This item is part of our curated guest collection. Quantities are limited and every order is fulfilled
+      by hand to ensure quality. Pair it with complementary accessories in your cart for a complete look.
+    </p>
+    <div class="mt-6 flex flex-wrap gap-3">
+      <button class="btn btn-primary flex-1" (click)="add(product)">
+        <span class="pi pi-shopping-cart mr-2"></span>
+        Add to cart
+      </button>
+      <button class="btn flex-1 border border-gray-200 bg-white" (click)="closeDetails()">
+        Keep browsing
+      </button>
+    </div>
   </div>
 </div>

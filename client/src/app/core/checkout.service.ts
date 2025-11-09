@@ -4,7 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { CartService } from './cart.service';
 import { environment } from '../environment';
 
-type PayfastMethod =
+export type PayfastMethod =
   | 'ef'  // EFT
   | 'cc'  // Credit card
   | 'dc'  // Debit card
@@ -27,19 +27,47 @@ export class CheckoutService {
   // If paymentMethod is omitted → PayFast will show ALL options
   async createOrder(
     customer: any,
-    opts?: { paymentMethod?: PayfastMethod } // optional
+    opts?: { paymentMethod?: PayfastMethod }
   ) {
     const cart = this.cart.snapshot.map(i => ({
       id: i.product.id,
       name: i.product.name,
       price_cents: i.product.price_cents,
       quantity: i.quantity,
+      line_total_cents: this.cart.lineTotal(i)
     }));
+
+    const shipping = this.cart.shippingOption;
+    const promo = this.cart.promo;
+    const extras = {
+      donation_cents: this.cart.donationCents(),
+      gift_wrap: this.cart.extras.gift_wrap,
+      gift_wrap_cents: this.cart.giftWrapCents(),
+    };
 
     const payload: any = {
       cart,
       customer,
-      total_cents: this.cart.totalCents(),
+      totals: {
+        subtotal_cents: this.cart.subtotalCents(),
+        shipping_cents: this.cart.shippingCents(),
+        discount_cents: this.cart.discountCents(),
+        tax_rate_percent: 15,
+        pre_tax_total_cents: this.cart.preTaxTotalCents(),
+        donation_cents: extras.donation_cents,
+        gift_wrap_cents: extras.gift_wrap_cents,
+        tax_cents: this.cart.taxCents(),
+        total_cents: this.cart.totalCents(),
+        items_count: this.cart.itemCount(),
+      },
+      shipping,
+      promo,
+      extras: {
+        ...extras,
+        requested_delivery_date: customer?.delivery_date || null,
+        notes: customer?.notes || '',
+        newsletter_opt_in: Boolean(customer?.newsletter_opt_in),
+      },
       currency: 'ZAR',
       notify_url: environment.payfast.notify_url,
       return_url: environment.payfast.return_url,

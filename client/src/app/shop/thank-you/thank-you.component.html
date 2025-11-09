@@ -1,0 +1,93 @@
+<div *ngIf="loading" class="card text-center">
+  <span class="pi pi-spin pi-spinner text-2xl text-primary"></span>
+  <p class="mt-2 text-sm text-gray-500">Preparing your receipt…</p>
+</div>
+
+<div *ngIf="!loading && order" class="space-y-6">
+  <div class="card space-y-3">
+    <h1 class="text-2xl font-semibold text-primary">Thank you for your purchase!</h1>
+    <p class="text-sm text-gray-600">
+      We've sent a confirmation email to <strong>{{ order.customer?.email?.replace('@', '&#64;') }}</strong>. Your order number is
+      <strong>{{ order.order_number || 'pending' }}</strong> and we're already getting it ready.
+    </p>
+      <div class="grid gap-4 md:grid-cols-2">
+        <div>
+          <h2 class="text-sm font-semibold uppercase text-gray-500">Delivery</h2>
+          <p class="text-sm text-gray-700">
+            {{ order.customer?.name }}<br />
+            {{ order.customer?.address_line1 }}<br />
+            <ng-container *ngIf="order.customer?.address_line2">{{ order.customer?.address_line2 }}<br /></ng-container>
+            {{ order.customer?.city }}, {{ order.customer?.region }} {{ order.customer?.postal_code }}
+          </p>
+          <p class="mt-2 text-xs text-gray-500" *ngIf="order.extras?.requested_delivery_date">
+            Requested delivery: {{ order.extras?.requested_delivery_date | date:'fullDate' }}
+          </p>
+        </div>
+        <div>
+          <h2 class="text-sm font-semibold uppercase text-gray-500">Shipping method</h2>
+          <p class="text-sm text-gray-700">{{ order.shipping.label }} • arrives {{ order.shipping.eta }}</p>
+          <p class="text-xs text-gray-500" *ngIf="order.promoCode">Promo {{ order.promoCode }} applied.</p>
+          <p class="text-xs text-gray-500" *ngIf="order.extras?.gift_wrap">Premium gift wrap added to this order.</p>
+          <p class="text-xs text-gray-500" *ngIf="order.extras?.donation_cents">Donation: R {{ ((order.extras?.donation_cents || 0)/100) | number:'1.0-0' }} to our dojo programme.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card space-y-4">
+    <h2 class="text-xl font-semibold">Items</h2>
+      <div class="space-y-3">
+        <div *ngFor="let item of order.items" class="flex items-center justify-between rounded-2xl border border-gray-100 p-3">
+          <div>
+            <div class="font-medium">{{ item.product.name }}</div>
+            <div class="text-xs text-gray-500">Quantity {{ item.quantity }}</div>
+        </div>
+        <div class="font-semibold">R {{ (item.product.price_cents * item.quantity / 100) | number:'1.0-0' }}</div>
+      </div>
+    </div>
+    <div class="border-t border-gray-200 pt-4 text-sm">
+      <div class="flex items-center justify-between"><span>Subtotal</span><span>R {{ (order.totals.subtotal_cents/100) | number:'1.0-0' }}</span></div>
+      <div class="flex items-center justify-between"><span>Shipping</span><span>R {{ (order.totals.shipping_cents/100) | number:'1.0-0' }}</span></div>
+      <div class="flex items-center justify-between" *ngIf="order.totals.gift_wrap_cents">
+        <span>Gift wrap</span>
+        <span>R {{ (order.totals.gift_wrap_cents/100) | number:'1.0-0' }}</span>
+      </div>
+      <div class="flex items-center justify-between" *ngIf="order.totals.donation_cents">
+        <span>Donation</span>
+        <span>R {{ (order.totals.donation_cents/100) | number:'1.0-0' }}</span>
+      </div>
+      <div class="flex items-center justify-between" *ngIf="order.totals.discount_cents">
+        <span>Discounts</span>
+        <span class="text-green-600">- R {{ (order.totals.discount_cents/100) | number:'1.0-0' }}</span>
+      </div>
+      <div class="flex items-center justify-between border-t border-gray-200 pt-3 text-xs uppercase tracking-wide text-gray-500">
+        <span>Net before VAT</span>
+        <span>R {{ (order.totals.pre_tax_total_cents/100) | number:'1.0-0' }}</span>
+      </div>
+      <div class="flex items-center justify-between">
+        <span>VAT (15%)</span>
+        <span>R {{ (order.totals.tax_cents/100) | number:'1.0-0' }}</span>
+      </div>
+      <div class="mt-4 flex items-center justify-between text-lg font-semibold">
+        <span>Total paid</span>
+        <span>R {{ (order.totals.total_cents/100) | number:'1.0-0' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card space-y-3 text-sm text-gray-600">
+    <p *ngIf="hasInvoiceRequest">A tax invoice will be emailed shortly to {{ order.customer?.email?.replace('@', '&#64;') }}.</p>
+    <p *ngIf="order.extras?.notes">Special instructions: “{{ order.extras?.notes }}”</p>
+    <p *ngIf="order.extras?.newsletter_opt_in">You're subscribed to our monthly dojo digest.</p>
+  </div>
+
+  <div class="flex flex-col gap-3 md:flex-row">
+    <a class="btn btn-primary md:w-auto" routerLink="/">Shop again</a>
+    <button class="btn border border-gray-200 bg-white md:w-auto" type="button" (click)="clearHistory()">Clear saved receipt</button>
+  </div>
+</div>
+
+<div *ngIf="!loading && !order" class="card text-center">
+  <h2 class="text-xl font-semibold">No recent orders</h2>
+  <p class="mt-2 text-sm text-gray-500">Complete a purchase to see your order summary here.</p>
+  <a class="btn btn-primary mt-4 inline-flex justify-center" routerLink="/">Browse products</a>
+</div>

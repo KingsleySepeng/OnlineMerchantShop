@@ -1,7 +1,30 @@
-<div class="max-w-5xl mx-auto p-6">
-  <header class="flex items-center justify-between mb-6">
-    <h1 class="text-2xl font-bold">Guest Shop</h1>
-    <a class="btn btn-primary" routerLink="/checkout">Checkout</a>
+<div class="max-w-6xl mx-auto p-6">
+  <header class="flex flex-col gap-4 border-b border-gray-200 pb-6 md:flex-row md:items-center md:justify-between">
+    <div>
+      <h1 class="text-3xl font-bold text-primary">Guest Shop</h1>
+      <p class="mt-1 text-sm text-gray-500">Quality products, secure guest checkout and fast delivery.</p>
+    </div>
+    <div class="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
+      <div class="rounded-2xl bg-white px-4 py-2 text-sm shadow-sm" *ngIf="cart.hasItems(); else emptyCart">
+        <div class="font-semibold">{{ cartSummary.count }} {{ cartSummary.count === 1 ? 'item' : 'items' }}</div>
+        <div class="mt-1 space-y-1 text-gray-500">
+          <div>Subtotal R {{ (cartSummary.subtotal/100) | number:'1.0-0' }}</div>
+          <div *ngIf="cartSummary.giftWrap">Gift wrap R {{ (cartSummary.giftWrap/100) | number:'1.0-0' }}</div>
+          <div *ngIf="cartSummary.donation">Donation R {{ (cartSummary.donation/100) | number:'1.0-0' }}</div>
+          <div class="text-xs uppercase tracking-wide text-gray-400">VAT R {{ (cartSummary.tax/100) | number:'1.0-0' }}</div>
+        </div>
+        <div class="mt-2 rounded-xl bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
+          Due today R {{ (cartSummary.total/100) | number:'1.0-0' }}
+        </div>
+      </div>
+      <ng-template #emptyCart>
+        <div class="rounded-2xl bg-white px-4 py-2 text-sm text-gray-500 shadow-sm">Cart is empty</div>
+      </ng-template>
+      <a class="btn btn-primary sm:ml-2" routerLink="/checkout">
+        <span class="pi pi-credit-card mr-2"></span>
+        Checkout
+      </a>
+    </div>
   </header>
   <router-outlet />
 </div>
