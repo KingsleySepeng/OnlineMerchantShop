@@ -1,30 +1,243 @@
-<div class="grid md:grid-cols-2 gap-6">
-  <div class="card">
-    <h2 class="text-xl font-semibold mb-4">Your details</h2>
-    <div class="grid grid-cols-1 gap-3">
-      <input class="card" placeholder="Full name" [(ngModel)]="customer.name" />
-      <input class="card" placeholder="Email" [(ngModel)]="customer.email" />
-      <input class="card" placeholder="Phone" [(ngModel)]="customer.phone" />
-      <input class="card" placeholder="Address" [(ngModel)]="customer.address_line1" />
-      <div class="grid grid-cols-3 gap-3">
-        <input class="card" placeholder="City" [(ngModel)]="customer.city" />
-        <input class="card" placeholder="Province" [(ngModel)]="customer.region" />
-        <input class="card" placeholder="Postal code" [(ngModel)]="customer.postal_code" />
+<div *ngIf="cartIsEmpty" class="card border border-amber-200 bg-amber-50 text-amber-900">
+  <h2 class="text-xl font-semibold">Your cart is empty</h2>
+  <p class="mt-2 text-sm">Add a few items from the shop before checking out.</p>
+  <a class="btn btn-primary mt-4 inline-flex w-full justify-center md:w-auto" routerLink="/">Browse products</a>
+</div>
+
+<div *ngIf="!cartIsEmpty" class="grid gap-6 lg:grid-cols-3">
+  <div class="lg:col-span-2 space-y-6">
+    <div class="card space-y-4">
+      <div>
+        <h2 class="text-xl font-semibold">Contact & delivery details</h2>
+        <p class="text-sm text-gray-500">We only use this information to fulfil your order.</p>
+      </div>
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <label class="flex flex-col gap-1">
+          <span class="text-sm font-medium">Full name</span>
+          <input
+            class="card border border-gray-200 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
+            [ngClass]="{'border-red-500': attemptedSubmit && !customer.name}"
+            placeholder="e.g. Naledi Jacobs"
+            [(ngModel)]="customer.name"
+            (ngModelChange)="persistCustomer()"
+          />
+        </label>
+        <label class="flex flex-col gap-1">
+          <span class="text-sm font-medium">Email</span>
+          <input
+            class="card border border-gray-200 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
+            [ngClass]="{'border-red-500': attemptedSubmit && !isEmailValid}"
+            type="email"
+            placeholder="you@example.com"
+            [(ngModel)]="customer.email"
+            (ngModelChange)="persistCustomer()"
+          />
+          <span *ngIf="attemptedSubmit && !isEmailValid" class="text-xs text-red-600">Enter a valid email address.</span>
+        </label>
+        <label class="flex flex-col gap-1">
+          <span class="text-sm font-medium">Phone</span>
+          <input
+            class="card border border-gray-200 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
+            [ngClass]="{'border-red-500': attemptedSubmit && !isPhoneValid}"
+            placeholder="e.g. 082 123 4567"
+            [(ngModel)]="customer.phone"
+            (ngModelChange)="persistCustomer()"
+          />
+          <span *ngIf="attemptedSubmit && !isPhoneValid" class="text-xs text-red-600">Enter a contact number we can reach you on.</span>
+        </label>
+        <label class="flex flex-col gap-1 md:col-span-2">
+          <span class="text-sm font-medium">Street address</span>
+          <input
+            class="card border border-gray-200 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
+            [ngClass]="{'border-red-500': attemptedSubmit && !customer.address_line1}"
+            placeholder="House number and street"
+            [(ngModel)]="customer.address_line1"
+            (ngModelChange)="persistCustomer()"
+          />
+        </label>
+        <label class="flex flex-col gap-1">
+          <span class="text-sm font-medium">City</span>
+          <input
+            class="card border border-gray-200 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
+            [ngClass]="{'border-red-500': attemptedSubmit && !customer.city}"
+            [(ngModel)]="customer.city"
+            placeholder="e.g. Johannesburg"
+            (ngModelChange)="persistCustomer()"
+          />
+        </label>
+        <label class="flex flex-col gap-1">
+          <span class="text-sm font-medium">Province</span>
+          <input
+            class="card border border-gray-200 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
+            [ngClass]="{'border-red-500': attemptedSubmit && !customer.region}"
+            [(ngModel)]="customer.region"
+            placeholder="e.g. Gauteng"
+            (ngModelChange)="persistCustomer()"
+          />
+        </label>
+        <label class="flex flex-col gap-1">
+          <span class="text-sm font-medium">Postal code</span>
+          <input
+            class="card border border-gray-200 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
+            [ngClass]="{'border-red-500': attemptedSubmit && !customer.postal_code}"
+            [(ngModel)]="customer.postal_code"
+            placeholder="e.g. 2196"
+            (ngModelChange)="persistCustomer()"
+          />
+        </label>
       </div>
     </div>
+
+    <div class="card space-y-4">
+      <div>
+        <h2 class="text-xl font-semibold">Shipping options</h2>
+        <p class="text-sm text-gray-500">Choose the delivery speed that suits you best.</p>
+      </div>
+      <div class="space-y-3">
+        <label
+          *ngFor="let option of cart.shippingOptions"
+          class="flex cursor-pointer items-start gap-3 rounded-2xl border border-gray-200 p-4 transition hover:border-primary"
+          [ngClass]="{'border-primary ring-2 ring-primary/40': option.id === selectedShippingId}"
+        >
+          <input
+            type="radio"
+            class="mt-1"
+            name="shippingOption"
+            [value]="option.id"
+            [checked]="option.id === selectedShippingId"
+            (change)="changeShipping(option.id)"
+          />
+          <div class="flex-1">
+            <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+              <span class="font-semibold">{{ option.label }}</span>
+              <span class="text-sm text-gray-600">R {{ (option.amount_cents/100) | number:'1.0-0' }}</span>
+            </div>
+            <p class="text-sm text-gray-500">{{ option.description }} • {{ option.eta }}</p>
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <div class="card space-y-4">
+      <div class="grid gap-4 md:grid-cols-2">
+        <label class="flex flex-col gap-2">
+          <span class="text-sm font-medium">Promo code</span>
+          <div class="flex flex-col gap-2 sm:flex-row">
+            <input
+              class="card flex-1 border border-gray-200 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
+              placeholder="Enter code"
+              [(ngModel)]="promoCode"
+            />
+            <button class="btn btn-primary sm:w-auto" type="button" (click)="applyPromo()">Apply</button>
+            <button class="btn border border-gray-200 bg-white sm:w-auto" type="button" (click)="clearPromo()" *ngIf="promo">Remove</button>
+          </div>
+          <p class="text-xs" [ngClass]="promo?.code ? 'text-green-600' : 'text-gray-500'">{{ promoFeedback }}</p>
+          <p class="text-xs text-green-600" *ngIf="promo">{{ promo!.description }}</p>
+        </label>
+        <label class="flex flex-col gap-2">
+          <span class="text-sm font-medium">Order notes (optional)</span>
+          <textarea
+            class="card min-h-[100px] border border-gray-200 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
+            placeholder="Delivery instructions or gift message"
+            [(ngModel)]="customer.notes"
+            (ngModelChange)="persistCustomer()"
+          ></textarea>
+        </label>
+      </div>
+      <p class="text-xs text-gray-500">Need help? Email <a class="text-primary" href="mailto:support&#64;guestshop.test">support&#64;guestshop.test</a>.</p>
+    </div>
   </div>
-  <div class="card">
-    <h2 class="text-xl font-semibold mb-4">Order summary</h2>
-    <div *ngFor="let i of cart.snapshot" class="flex items-center justify-between">
-      <div>{{ i.product.name }} × {{ i.quantity }}</div>
-      <div>R {{ (i.product.price_cents * i.quantity / 100) | number:'1.0-0' }}</div>
+
+  <div class="space-y-6">
+    <div class="card space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-xl font-semibold">Cart</h2>
+        <a routerLink="/" class="text-sm text-primary hover:underline">Continue shopping</a>
+      </div>
+      <div class="space-y-4" *ngIf="cartItems.length; else emptyMessage">
+        <div
+          *ngFor="let item of cartItems"
+          class="rounded-2xl border border-gray-100 p-4 shadow-sm"
+        >
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <div class="font-semibold">{{ item.product.name }}</div>
+              <div class="text-sm text-gray-500">R {{ (item.product.price_cents/100) | number:'1.0-0' }} each</div>
+            </div>
+            <button class="text-sm text-red-500 hover:underline" type="button" (click)="removeItem(item)">
+              Remove
+            </button>
+          </div>
+          <div class="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex items-center gap-2">
+              <button class="btn border border-gray-200 bg-white" type="button" (click)="decrement(item)" [disabled]="item.quantity <= 1">-</button>
+              <input
+                class="w-16 rounded-xl border border-gray-200 px-3 py-2 text-center"
+                type="number"
+                min="1"
+                [value]="item.quantity"
+                (input)="updateQuantity(item, $any($event.target).valueAsNumber || 1)"
+              />
+              <button class="btn border border-gray-200 bg-white" type="button" (click)="increment(item)">+</button>
+            </div>
+            <div class="text-right font-semibold">
+              R {{ (cart.lineTotal(item)/100) | number:'1.0-0' }}
+            </div>
+          </div>
+        </div>
+      </div>
+      <ng-template #emptyMessage>
+        <p class="text-sm text-gray-500">Your basket is ready for new finds.</p>
+      </ng-template>
     </div>
-    <div class="mt-4 flex items-center justify-between font-semibold">
-      <div>Total</div>
-      <div>R {{ (cart.totalCents()/100) | number:'1.0-0' }}</div>
+
+    <div class="card space-y-4">
+      <h2 class="text-xl font-semibold">Order summary</h2>
+      <div class="space-y-2 text-sm">
+        <div class="flex items-center justify-between">
+          <span>Subtotal</span>
+          <span>R {{ (subtotal/100) | number:'1.0-0' }}</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span>Shipping</span>
+          <span *ngIf="shipping; else freeShipping">R {{ (shipping/100) | number:'1.0-0' }}</span>
+        </div>
+        <ng-template #freeShipping><span class="text-green-600">Free</span></ng-template>
+        <div class="flex items-center justify-between" *ngIf="discount">
+          <span>Discount</span>
+          <span class="text-green-600">- R {{ (discount/100) | number:'1.0-0' }}</span>
+        </div>
+      </div>
+      <div class="border-t border-gray-200 pt-4 text-lg font-semibold">
+        <div class="flex items-center justify-between">
+          <span>Total due</span>
+          <span>R {{ (total/100) | number:'1.0-0' }}</span>
+        </div>
+        <p class="text-xs text-gray-500">Estimated delivery: {{ cart.shippingOption.eta }}</p>
+      </div>
+
+      <label class="flex flex-col gap-2 text-sm">
+        <span class="font-medium">PayFast payment method</span>
+        <select
+          class="card border border-gray-200 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
+          [(ngModel)]="paymentMethod"
+        >
+          <option *ngFor="let option of paymentMethods" [value]="option.id">{{ option.label }}</option>
+        </select>
+        <span class="text-xs text-gray-500">Select a specific option to skip the PayFast method picker.</span>
+      </label>
+
+      <button
+        class="btn btn-primary w-full"
+        type="button"
+        (click)="pay()"
+        [disabled]="submitting || cartIsEmpty"
+      >
+        {{ submitting ? 'Starting payment…' : 'Pay with PayFast' }}
+      </button>
+      <p *ngIf="attemptedSubmit && formInvalid" class="text-xs text-red-600">
+        Double-check the highlighted fields to continue.
+      </p>
     </div>
-    <button class="btn btn-primary mt-4 w-full" (click)="pay()" [disabled]="submitting || cart.totalCents()==0">
-      {{ submitting ? 'Starting payment…' : 'Pay with PayFast' }}
-    </button>
   </div>
 </div>

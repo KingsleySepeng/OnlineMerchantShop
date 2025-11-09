@@ -4,7 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { CartService } from './cart.service';
 import { environment } from '../environment';
 
-type PayfastMethod =
+export type PayfastMethod =
   | 'ef'  // EFT
   | 'cc'  // Credit card
   | 'dc'  // Debit card
@@ -27,19 +27,28 @@ export class CheckoutService {
   // If paymentMethod is omitted → PayFast will show ALL options
   async createOrder(
     customer: any,
-    opts?: { paymentMethod?: PayfastMethod } // optional
+    opts?: { paymentMethod?: PayfastMethod }
   ) {
     const cart = this.cart.snapshot.map(i => ({
       id: i.product.id,
       name: i.product.name,
       price_cents: i.product.price_cents,
       quantity: i.quantity,
+      line_total_cents: this.cart.lineTotal(i)
     }));
 
     const payload: any = {
       cart,
       customer,
-      total_cents: this.cart.totalCents(),
+      totals: {
+        subtotal_cents: this.cart.subtotalCents(),
+        shipping_cents: this.cart.shippingCents(),
+        discount_cents: this.cart.discountCents(),
+        total_cents: this.cart.totalCents(),
+        items_count: this.cart.itemCount(),
+      },
+      shipping: this.cart.shippingOption,
+      promo: this.cart.promo,
       currency: 'ZAR',
       notify_url: environment.payfast.notify_url,
       return_url: environment.payfast.return_url,
