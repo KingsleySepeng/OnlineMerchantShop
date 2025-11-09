@@ -1,0 +1,30 @@
+<div class="grid md:grid-cols-2 gap-6">
+  <div class="card">
+    <h2 class="text-xl font-semibold mb-4">Your details</h2>
+    <div class="grid grid-cols-1 gap-3">
+      <input class="card" placeholder="Full name" [(ngModel)]="customer.name" />
+      <input class="card" placeholder="Email" [(ngModel)]="customer.email" />
+      <input class="card" placeholder="Phone" [(ngModel)]="customer.phone" />
+      <input class="card" placeholder="Address" [(ngModel)]="customer.address_line1" />
+      <div class="grid grid-cols-3 gap-3">
+        <input class="card" placeholder="City" [(ngModel)]="customer.city" />
+        <input class="card" placeholder="Province" [(ngModel)]="customer.region" />
+        <input class="card" placeholder="Postal code" [(ngModel)]="customer.postal_code" />
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <h2 class="text-xl font-semibold mb-4">Order summary</h2>
+    <div *ngFor="let i of cart.snapshot" class="flex items-center justify-between">
+      <div>{{ i.product.name }} × {{ i.quantity }}</div>
+      <div>R {{ (i.product.price_cents * i.quantity / 100) | number:'1.0-0' }}</div>
+    </div>
+    <div class="mt-4 flex items-center justify-between font-semibold">
+      <div>Total</div>
+      <div>R {{ (cart.totalCents()/100) | number:'1.0-0' }}</div>
+    </div>
+    <button class="btn btn-primary mt-4 w-full" (click)="pay()" [disabled]="submitting || cart.totalCents()==0">
+      {{ submitting ? 'Starting payment…' : 'Pay with PayFast' }}
+    </button>
+  </div>
+</div>
