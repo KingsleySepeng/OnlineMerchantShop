@@ -29,12 +29,28 @@
       <h2 class="text-lg font-semibold">Current totals</h2>
       <div class="flex items-center justify-between"><span>Subtotal</span><span>R {{ (subtotal/100) | number:'1.0-0' }}</span></div>
       <div class="flex items-center justify-between"><span>Shipping</span><span>R {{ (shipping/100) | number:'1.0-0' }}</span></div>
+      <div class="flex items-center justify-between" *ngIf="giftWrap">
+        <span>Gift wrap</span>
+        <span>R {{ (giftWrap/100) | number:'1.0-0' }}</span>
+      </div>
+      <div class="flex items-center justify-between" *ngIf="donation">
+        <span>Donation</span>
+        <span>R {{ (donation/100) | number:'1.0-0' }}</span>
+      </div>
       <div class="flex items-center justify-between" *ngIf="discount">
         <span>Discount</span>
         <span class="text-green-600">- R {{ (discount/100) | number:'1.0-0' }}</span>
       </div>
+      <div class="flex items-center justify-between border-t border-gray-200 pt-3 text-xs uppercase tracking-wide text-gray-500">
+        <span>Net before VAT</span>
+        <span>R {{ (preTaxTotal/100) | number:'1.0-0' }}</span>
+      </div>
+      <div class="flex items-center justify-between">
+        <span>VAT (15%)</span>
+        <span>R {{ (tax/100) | number:'1.0-0' }}</span>
+      </div>
       <div class="border-t border-gray-200 pt-3 text-base font-semibold flex items-center justify-between">
-        <span>Total</span>
+        <span>Total due</span>
         <span>R {{ (total/100) | number:'1.0-0' }}</span>
       </div>
     </div>

@@ -37,6 +37,14 @@ export class CheckoutService {
       line_total_cents: this.cart.lineTotal(i)
     }));
 
+    const shipping = this.cart.shippingOption;
+    const promo = this.cart.promo;
+    const extras = {
+      donation_cents: this.cart.donationCents(),
+      gift_wrap: this.cart.extras.gift_wrap,
+      gift_wrap_cents: this.cart.giftWrapCents(),
+    };
+
     const payload: any = {
       cart,
       customer,
@@ -44,11 +52,22 @@ export class CheckoutService {
         subtotal_cents: this.cart.subtotalCents(),
         shipping_cents: this.cart.shippingCents(),
         discount_cents: this.cart.discountCents(),
+        tax_rate_percent: 15,
+        pre_tax_total_cents: this.cart.preTaxTotalCents(),
+        donation_cents: extras.donation_cents,
+        gift_wrap_cents: extras.gift_wrap_cents,
+        tax_cents: this.cart.taxCents(),
         total_cents: this.cart.totalCents(),
         items_count: this.cart.itemCount(),
       },
-      shipping: this.cart.shippingOption,
-      promo: this.cart.promo,
+      shipping,
+      promo,
+      extras: {
+        ...extras,
+        requested_delivery_date: customer?.delivery_date || null,
+        notes: customer?.notes || '',
+        newsletter_opt_in: Boolean(customer?.newsletter_opt_in),
+      },
       currency: 'ZAR',
       notify_url: environment.payfast.notify_url,
       return_url: environment.payfast.return_url,

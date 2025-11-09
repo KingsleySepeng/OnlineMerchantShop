@@ -27,15 +27,24 @@ interface PromoDefinition {
 
 export interface AppliedPromo extends PromoDefinition {}
 
+export interface CartExtras {
+  donation_cents: number;
+  gift_wrap: boolean;
+}
+
 interface StoredCartState {
   items: CartItem[];
   shippingId: string;
   promoCode: string | null;
+  extras: CartExtras;
 }
 
 @Injectable({providedIn: 'root'})
 export class CartService {
   private readonly storageKey = 'guest-checkout-cart-state-v1';
+  private readonly vatRate = 0.15;
+  private readonly giftWrapFeeCents = 2500;
+  readonly donationPresets = [0, 1000, 2500, 5000];
 
   private readonly shippingOptionsList: ShippingOption[] = [
     {
@@ -88,6 +97,7 @@ export class CartService {
   private items$ = new BehaviorSubject<CartItem[]>([]);
   private shippingSelection$ = new BehaviorSubject<ShippingOption>(this.shippingOptionsList[0]);
   private promo$ = new BehaviorSubject<AppliedPromo | null>(null);
+  private extras$ = new BehaviorSubject<CartExtras>({donation_cents: 0, gift_wrap: false});
 
   constructor() {
     this.restoreFromStorage();
@@ -95,6 +105,7 @@ export class CartService {
     this.items$.subscribe(() => this.persist());
     this.shippingSelection$.subscribe(() => this.persist());
     this.promo$.subscribe(() => this.persist());
+    this.extras$.subscribe(() => this.persist());
   }
 
   get value$() {
@@ -115,6 +126,10 @@ export class CartService {
 
   get promo(): AppliedPromo | null {
     return this.promo$.value;
+  }
+
+  get extras(): CartExtras {
+    return this.extras$.value;
   }
 
   add(product: Product, quantity = 1) {
@@ -148,6 +163,7 @@ export class CartService {
     this.items$.next([]);
     this.shippingSelection$.next(this.shippingOptionsList[0]);
     this.promo$.next(null);
+    this.extras$.next({donation_cents: 0, gift_wrap: false});
   }
 
   subtotalCents() {
@@ -181,11 +197,45 @@ export class CartService {
     return shipping;
   }
 
-  totalCents() {
+  giftWrapCents() {
+    return this.extras$.value.gift_wrap ? this.giftWrapFeeCents : 0;
+  }
+
+  giftWrapFee() {
+    return this.giftWrapFeeCents;
+  }
+
+  donationCents() {
+    return Math.max(this.extras$.value.donation_cents || 0, 0);
+  }
+
+  private taxableBaseCents() {
     const subtotal = this.subtotalCents();
     const shipping = this.shippingCents();
     const discount = this.discountCents();
-    return Math.max(subtotal + shipping - discount, 0);
+    const giftWrap = this.giftWrapCents();
+    return Math.max(subtotal + shipping + giftWrap - discount, 0);
+  }
+
+  taxCents() {
+    return Math.floor(this.taxableBaseCents() * this.vatRate);
+  }
+
+  netTotalCents() {
+    const donation = this.donationCents();
+    return this.taxableBaseCents() + donation;
+  }
+
+  totalCents() {
+    return this.grandTotalCents();
+  }
+
+  preTaxTotalCents() {
+    return this.taxableBaseCents();
+  }
+
+  grandTotalCents() {
+    return this.netTotalCents() + this.taxCents();
   }
 
   itemCount() {
@@ -201,6 +251,15 @@ export class CartService {
     if (option) {
       this.shippingSelection$.next(option);
     }
+  }
+
+  setDonation(amountCents: number) {
+    const donation = Number.isFinite(amountCents) ? Math.max(Math.floor(amountCents), 0) : 0;
+    this.extras$.next({...this.extras$.value, donation_cents: donation});
+  }
+
+  setGiftWrap(enabled: boolean) {
+    this.extras$.next({...this.extras$.value, gift_wrap: Boolean(enabled)});
   }
 
   applyPromo(code: string) {
@@ -255,6 +314,12 @@ export class CartService {
           this.promo$.next({...promo});
         }
       }
+      if (stored.extras) {
+        this.extras$.next({
+          donation_cents: Math.max(stored.extras.donation_cents || 0, 0),
+          gift_wrap: Boolean(stored.extras.gift_wrap),
+        });
+      }
     } catch (err) {
       console.warn('Could not restore cart from storage', err);
     }
@@ -268,6 +333,7 @@ export class CartService {
       items: this.snapshot,
       shippingId: this.shippingSelection$.value.id,
       promoCode: this.promo$.value?.code ?? null,
+      extras: this.extras$.value,
     };
     try {
       localStorage.setItem(this.storageKey, JSON.stringify(state));

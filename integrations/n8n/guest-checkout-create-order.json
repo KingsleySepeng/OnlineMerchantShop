@@ -1,0 +1,390 @@
+{
+  "name": "Guest Checkout - Create Order (PayFast)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "order",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "1",
+      "name": "Webhook - Order",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        208,
+        304
+      ],
+      "webhookId": "19ab1bb4-cce8-4e8f-b2c6-5a4975021bbf"
+    },
+    {
+      "parameters": {
+        "jsCode": "const crypto = require('crypto');\n\nconst src = items[0].json || {};\nconst body = (src && typeof src.body === 'object') ? src.body : src;\n\nif (!Array.isArray(body.cart) || body.cart.length === 0) {\n  throw new Error('Cart is empty');\n}\n\nconst normalisedCart = body.cart.map((raw, idx) => {\n  const quantity = Number(raw.quantity || 0);\n  const price = Number(raw.price_cents || raw.unit_price_cents || 0);\n  if (!Number.isFinite(quantity) || quantity <= 0) {\n    throw new Error(`Invalid quantity for cart line ${idx + 1}`);\n  }\n  if (!Number.isFinite(price) || price <= 0) {\n    throw new Error(`Invalid unit price for cart line ${idx + 1}`);\n  }\n  const line_total_cents = price * quantity;\n  return {\n    id: raw.id,\n    product_id: raw.product_id || raw.id,\n    name: raw.name,\n    quantity,\n    price_cents: price,\n    line_total_cents,\n  };\n});\n\nconst totals = body.totals || {};\nconst shipping_cents = Number(body.shipping?.amount_cents ?? totals.shipping_cents ?? 0);\nconst discount_cents = Number(totals.discount_cents ?? 0);\nconst gift_wrap_cents = Number(totals.gift_wrap_cents ?? 0);\nconst donation_cents = Number(totals.donation_cents ?? body.extras?.donation_cents ?? 0);\nconst tax_rate_percent = Number(totals.tax_rate_percent ?? 15);\nconst subtotal_cents = normalisedCart.reduce((sum, line) => sum + line.line_total_cents, 0);\n\nconst taxable_base = Math.max(subtotal_cents + shipping_cents + gift_wrap_cents - discount_cents, 0);\nconst expected_pre_tax = Number(totals.pre_tax_total_cents ?? taxable_base);\nif (expected_pre_tax !== taxable_base) {\n  throw new Error(`Pre-tax total mismatch. Expected ${expected_pre_tax}, calculated ${taxable_base}`);\n}\n\nconst tax_cents = Math.floor(taxable_base * (tax_rate_percent / 100));\nconst expected_tax = Number(totals.tax_cents ?? tax_cents);\nif (expected_tax !== tax_cents) {\n  throw new Error(`Tax mismatch. Expected ${expected_tax}, calculated ${tax_cents}`);\n}\n\nconst grand_total_cents = taxable_base + donation_cents + tax_cents;\nconst expected_total = Number(totals.total_cents ?? grand_total_cents);\nif (expected_total !== grand_total_cents) {\n  throw new Error(`Grand total mismatch. Expected ${expected_total}, calculated ${grand_total_cents}`);\n}\n\nif (Number(totals.subtotal_cents ?? subtotal_cents) !== subtotal_cents) {\n  throw new Error('Subtotal mismatch');\n}\n\nconst now = new Date();\nconst order_number = body.order_number\n  || `GC-${now.toISOString().replace(/[-:.TZ]/g, '').slice(0, 14)}-${crypto.randomBytes(2).toString('hex').toUpperCase()}`;\n\nconst customer = body.customer || {};\nconst extras = body.extras || {};\n\nreturn [{\n  json: {\n    order_number,\n    customer,\n    cart: normalisedCart,\n    totals: {\n      subtotal_cents,\n      shipping_cents,\n      discount_cents,\n      gift_wrap_cents,\n      donation_cents,\n      tax_cents,\n      tax_rate_percent,\n      pre_tax_total_cents: taxable_base,\n      total_cents: grand_total_cents,\n      items_count: normalisedCart.reduce((sum, line) => sum + line.quantity, 0),\n    },\n    shipping: {\n      id: body.shipping?.id || null,\n      label: body.shipping?.label || 'Standard courier',\n      eta: body.shipping?.eta || '2-4 business days',\n      amount_cents: shipping_cents,\n      description: body.shipping?.description || null,\n    },\n    promo: body.promo || null,\n    extras: {\n      gift_wrap: Boolean(extras.gift_wrap),\n      donation_cents,\n      requested_delivery_date: extras.requested_delivery_date || null,\n      notes: extras.notes || '',\n      newsletter_opt_in: Boolean(extras.newsletter_opt_in),\n    },\n    payment_method: body.payment_method || null,\n    currency: body.currency || 'ZAR',\n    return_url: body.return_url || body.payfast?.return_url || body.cart_return_url || body.customer?.return_url || null,\n    cancel_url: body.cancel_url || body.payfast?.cancel_url || null,\n    notify_url: body.notify_url || body.payfast?.notify_url || null,\n  }\n}];\n"
+      },
+      "id": "validate",
+      "name": "Validate & Compute",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        512,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.SUPABASE_REST_URL}}/rest/v1/customers",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apiKey",
+              "value": "={{ $env.SUPABASE_SERVICE_ROLE_KEY }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$env.SUPABASE_SERVICE_ROLE_KEY}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates,return=representation"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "=json",
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"email\": \"{{ $json.customer.email }}\",\n  \"name\": \"{{ $json.customer.name }}\",\n  \"phone\": \"{{ $json.customer.phone }}\",\n  \"address_line1\": \"{{ $json.customer.address_line1 }}\",\n  \"address_line2\": \"{{ $json.customer.address_line2 }}\",\n  \"city\": \"{{ $json.customer.city }}\",\n  \"region\": \"{{ $json.customer.region }}\",\n  \"postal_code\": \"{{ $json.customer.postal_code }}\",\n  \"country\": \"{{ $json.customer.country || 'ZA' }}\",\n  \"company\": \"{{ $json.customer.company }}\",\n  \"vat_number\": \"{{ $json.customer.vat_number }}\",\n  \"newsletter_opt_in\": {{ $json.extras.newsletter_opt_in ? true : false }}\n}",
+        "options": {
+          "response": {
+            "response": {}
+          }
+        }
+      },
+      "id": "customer",
+      "name": "Supabase - Upsert Customer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        736,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "cart",
+        "options": {}
+      },
+      "id": "split",
+      "name": "Split Items",
+      "type": "n8n-nodes-base.itemLists",
+      "typeVersion": 1,
+      "position": [
+        736,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "id": "merge",
+      "name": "Merge",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1056,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.SUPABASE_REST_URL}}/rest/v1/orders",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apiKey",
+              "value": "={{ $env.SUPABASE_SERVICE_ROLE_KEY }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$env.SUPABASE_SERVICE_ROLE_KEY}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates,return=representation"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "=json",
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"order_number\": \"{{ $json.order_number }}\",\n  \"customer_id\": \"{{ $node['Supabase - Upsert Customer'].json[0].id || $node['Supabase - Upsert Customer'].json.id }}\",\n  \"status\": \"created\",\n  \"total_cents\": {{ $json.totals.total_cents }},\n  \"subtotal_cents\": {{ $json.totals.subtotal_cents }},\n  \"shipping_cents\": {{ $json.totals.shipping_cents }},\n  \"discount_cents\": {{ $json.totals.discount_cents }},\n  \"gift_wrap_cents\": {{ $json.totals.gift_wrap_cents }},\n  \"donation_cents\": {{ $json.totals.donation_cents }},\n  \"tax_cents\": {{ $json.totals.tax_cents }},\n  \"currency\": \"{{ $json.currency }}\",\n  \"promo_code\": \"{{ $json.promo?.code }}\",\n  \"shipping_method\": \"{{ $json.shipping.label }}\",\n  \"shipping_eta\": \"{{ $json.shipping.eta }}\",\n  \"shipping_amount_cents\": {{ $json.shipping.amount_cents }},\n  \"gift_wrap\": {{ $json.extras.gift_wrap ? true : false }},\n  \"requested_delivery_date\": {{ $json.extras.requested_delivery_date ? '\\"' + $json.extras.requested_delivery_date + '\\"' : null }},\n  \"notes\": \"{{ $json.extras.notes }}\",\n  \"payment_method\": \"{{ $json.payment_method }}\",\n  \"metadata\": {\n    \"newsletter_opt_in\": {{ $json.extras.newsletter_opt_in ? true : false }},\n    \"shipping_id\": \"{{ $json.shipping.id }}\"\n  }\n}",
+        "options": {
+          "response": {
+            "response": {}
+          }
+        }
+      },
+      "id": "order",
+      "name": "Supabase - Insert Order",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        896,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.SUPABASE_REST_URL}}/rest/v1/order_items",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apiKey",
+              "value": "={{ $env.SUPABASE_SERVICE_ROLE_KEY }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$env.SUPABASE_SERVICE_ROLE_KEY}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=minimal"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "=json",
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"order_id\": \"{{ $item(0).$node['Supabase - Insert Order'].json.id }}\",\n  \"product_id\": {{ $json.product_id || $json.id }},\n  \"name\": \"{{ $json.name }}\",\n  \"unit_price_cents\": {{ $json.price_cents }},\n  \"quantity\": {{ $json.quantity }},\n  \"line_total_cents\": {{ $json.line_total_cents }}\n}",
+        "options": {
+          "response": {
+            "response": {}
+          }
+        }
+      },
+      "id": "orderItems",
+      "name": "Supabase - Insert Order Items",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1248,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.SUPABASE_REST_URL}}/rest/v1/order_events",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apiKey",
+              "value": "={{ $env.SUPABASE_SERVICE_ROLE_KEY }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$env.SUPABASE_SERVICE_ROLE_KEY}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=minimal"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "=json",
+        "specifyBody": "json",
+        "jsonBody": "=[{\n  \"order_id\": \"{{ $node['Supabase - Insert Order'].json.id }}\",\n  \"status\": \"created\",\n  \"message\": \"Order captured and awaiting PayFast payment\",\n  \"meta\": {\n    \"donation_cents\": {{ $node['Validate & Compute'].json.totals.donation_cents }},\n    \"gift_wrap\": {{ $node['Validate & Compute'].json.extras.gift_wrap ? true : false }}\n  }\n}]",
+        "options": {
+          "response": {
+            "response": {}
+          }
+        }
+      },
+      "id": "event",
+      "name": "Supabase - Insert Event",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1072,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const crypto = require('crypto');\n\nconst data = items[0].json;\nconst order = $node['Validate & Compute'].json;\nconst customer = order.customer || {};\n\nfunction pfEncode(v) {\n  return encodeURIComponent(v ?? '')\n    .replace(/%20/g, '+')\n    .replace(/%[0-9a-f]{2}/g, (m) => m.toUpperCase());\n}\n\nconst env = {\n  id: $env.PAYFAST_MERCHANT_ID,\n  key: $env.PAYFAST_MERCHANT_KEY,\n  mode: ($env.PAYFAST_MODE || 'sandbox').toLowerCase(),\n  passphrase: $env.PAYFAST_PASSPHRASE || ''\n};\nif (!env.id || !env.key) {\n  throw new Error('Missing PAYFAST_MERCHANT_ID or PAYFAST_MERCHANT_KEY');\n}\n\nconst baseUrl = env.mode === 'live' ? 'https://www.payfast.co.za/eng/process' : 'https://sandbox.payfast.co.za/eng/process';\n\nconst nameParts = (customer.name || '').trim().split(/\s+/);\nconst name_first = nameParts.shift() || '';\nconst name_last = nameParts.join(' ');\n\nconst pairs = new Map();\npairs.set('merchant_id', env.id);\npairs.set('merchant_key', env.key);\nif (data.payment_method) pairs.set('payment_method', data.payment_method);\npairs.set('return_url', data.return_url || $env.PAYFAST_RETURN_URL || 'http://localhost:4200/thank-you');\npairs.set('cancel_url', data.cancel_url || $env.PAYFAST_CANCEL_URL || 'http://localhost:4200/cancelled');\npairs.set('notify_url', data.notify_url || $env.PAYFAST_NOTIFY_URL);\npairs.set('name_first', name_first);\npairs.set('name_last', name_last);\npairs.set('email_address', customer.email || '');\npairs.set('m_payment_id', data.order_number);\npairs.set('amount', (order.totals.total_cents / 100).toFixed(2));\npairs.set('item_name', `Guest order ${data.order_number}`);\npairs.set('item_description', `${order.cart.length} item(s) • shipping ${order.shipping.label}`);\npairs.set('custom_str1', JSON.stringify({ donation_cents: order.totals.donation_cents, gift_wrap: order.extras.gift_wrap }));\n\nconst orderedKeys = [\n  'merchant_id','merchant_key','payment_method','return_url','cancel_url','notify_url','name_first','name_last','email_address','m_payment_id','amount','item_name','item_description','custom_str1'\n];\nconst encodedPairs = [];\nfor (const key of orderedKeys) {\n  if (!pairs.has(key)) continue;\n  const value = pairs.get(key);\n  if (value !== undefined && value !== null && String(value) !== '') {\n    encodedPairs.push(`${key}=${pfEncode(value)}`);\n  }\n}\n\nlet signaturePayload = encodedPairs.join('&');\nif (env.passphrase) {\n  signaturePayload += `&passphrase=${pfEncode(env.passphrase)}`;\n}\nconst signature = crypto.createHash('md5').update(signaturePayload).digest('hex');\nconst payment_url = `${baseUrl}?${encodedPairs.join('&')}&signature=${signature}`;\n\nconst expires_at = new Date(Date.now() + 1000 * 60 * 15).toISOString();\n\nreturn [{\n  json: {\n    order_number: data.order_number,\n    payment_url,\n    signature,\n    signaturePayload,\n    payfast_mode: env.mode,\n    expires_at,\n    totals: order.totals,\n    shipping: order.shipping,\n    extras: order.extras,\n    promo: order.promo,\n    return_url: pairs.get('return_url'),\n    cancel_url: pairs.get('cancel_url'),\n    notify_url: pairs.get('notify_url'),\n    payment_method: data.payment_method,\n  }\n}];\n"
+      },
+      "id": "payfast",
+      "name": "Build PayFast URL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1456,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "respond",
+      "name": "Respond to Client",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1664,
+        304
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook - Order": {
+      "main": [
+        [
+          {
+            "node": "Validate & Compute",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate & Compute": {
+      "main": [
+        [
+          {
+            "node": "Supabase - Upsert Customer",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Split Items",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Build PayFast URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase - Upsert Customer": {
+      "main": [
+        [
+          {
+            "node": "Supabase - Insert Order",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Items": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Supabase - Insert Order": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Supabase - Insert Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Supabase - Insert Order Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase - Insert Order Items": {
+      "main": [
+        [
+          {
+            "node": "Build PayFast URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build PayFast URL": {
+      "main": [
+        [
+          {
+            "node": "Respond to Client",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {},
+  "versionId": "updated",
+  "meta": {
+    "templateCreds": [
+      "SUPABASE_REST_URL",
+      "SUPABASE_SERVICE_ROLE_KEY",
+      "PAYFAST_MERCHANT_ID",
+      "PAYFAST_MERCHANT_KEY",
+      "PAYFAST_PASSPHRASE",
+      "PAYFAST_MODE",
+      "PAYFAST_RETURN_URL",
+      "PAYFAST_CANCEL_URL",
+      "PAYFAST_NOTIFY_URL"
+    ]
+  },
+  "id": "XJ07MHaUCohHkiO3",
+  "tags": []
+}

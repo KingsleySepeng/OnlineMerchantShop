@@ -55,6 +55,15 @@
             (ngModelChange)="persistCustomer()"
           />
         </label>
+        <label class="flex flex-col gap-1 md:col-span-2">
+          <span class="text-sm font-medium">Apartment, suite, etc. <span class="text-gray-400">(optional)</span></span>
+          <input
+            class="card border border-gray-200 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
+            placeholder="Unit, floor or building"
+            [(ngModel)]="customer.address_line2"
+            (ngModelChange)="persistCustomer()"
+          />
+        </label>
         <label class="flex flex-col gap-1">
           <span class="text-sm font-medium">City</span>
           <input
@@ -82,6 +91,49 @@
             [ngClass]="{'border-red-500': attemptedSubmit && !customer.postal_code}"
             [(ngModel)]="customer.postal_code"
             placeholder="e.g. 2196"
+            (ngModelChange)="persistCustomer()"
+          />
+        </label>
+        <label class="flex flex-col gap-1 md:col-span-2">
+          <span class="text-sm font-medium">Preferred delivery date <span class="text-gray-400">(optional)</span></span>
+          <input
+            class="card border border-gray-200 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
+            type="date"
+            [min]="today"
+            [ngClass]="{'border-red-500': attemptedSubmit && deliveryDateInvalid}"
+            [(ngModel)]="customer.delivery_date"
+            (ngModelChange)="persistCustomer()"
+          />
+          <span *ngIf="attemptedSubmit && deliveryDateInvalid" class="text-xs text-red-600">Choose today or a future date.</span>
+        </label>
+      </div>
+      <label class="flex items-start gap-2 rounded-2xl bg-primary/5 p-4 text-sm">
+        <input
+          type="checkbox"
+          class="mt-1"
+          [(ngModel)]="customer.request_invoice"
+          (ngModelChange)="persistCustomer()"
+        />
+        <span><strong>Need a tax invoice?</strong> We'll include the details on your receipt.</span>
+      </label>
+      <div class="grid gap-4 md:grid-cols-2" *ngIf="customer.request_invoice">
+        <label class="flex flex-col gap-1">
+          <span class="text-sm font-medium">Company name</span>
+          <input
+            class="card border border-gray-200 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
+            [ngClass]="{'border-red-500': attemptedSubmit && customer.request_invoice && !customer.company}"
+            placeholder="Registered company"
+            [(ngModel)]="customer.company"
+            (ngModelChange)="persistCustomer()"
+          />
+          <span *ngIf="attemptedSubmit && invoiceCompanyMissing" class="text-xs text-red-600">Enter the entity name for your tax invoice.</span>
+        </label>
+        <label class="flex flex-col gap-1">
+          <span class="text-sm font-medium">VAT number <span class="text-gray-400">(optional)</span></span>
+          <input
+            class="card border border-gray-200 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
+            placeholder="e.g. 4123456789"
+            [(ngModel)]="customer.vat_number"
             (ngModelChange)="persistCustomer()"
           />
         </label>
@@ -119,6 +171,69 @@
     </div>
 
     <div class="card space-y-4">
+      <div>
+        <h2 class="text-xl font-semibold">Personalise your order</h2>
+        <p class="text-sm text-gray-500">Add gift wrap or support our dojo scholarship fund.</p>
+      </div>
+      <label class="flex items-start gap-3 rounded-2xl border border-gray-200 p-4 text-sm">
+        <input
+          type="checkbox"
+          class="mt-1"
+          [checked]="cart.extras.gift_wrap"
+          (change)="toggleGiftWrap($event)"
+        />
+        <span>
+          <strong>Premium gift wrap</strong><br />
+          We'll wrap everything in festive paper and include a handwritten note. (+R {{ (cart.giftWrapFee()/100) | number:'1.0-0' }})
+        </span>
+      </label>
+      <div>
+        <p class="text-sm font-medium">Add a dojo donation</p>
+        <div class="mt-2 flex flex-wrap gap-2 text-sm">
+          <label
+            *ngFor="let preset of cart.donationPresets"
+            class="flex cursor-pointer items-center gap-2 rounded-2xl border border-gray-200 px-3 py-2"
+            [ngClass]="{'border-primary text-primary': donationChoice === preset.toString()}"
+          >
+            <input
+              type="radio"
+              name="donation"
+              [value]="preset"
+              [checked]="donationChoice === preset.toString()"
+              (change)="selectDonation(preset.toString())"
+            />
+            <span>{{ preset ? ('R ' + (preset/100 | number:'1.0-0')) : 'No thanks' }}</span>
+          </label>
+          <label
+            class="flex flex-1 min-w-[200px] items-center gap-2 rounded-2xl border border-gray-200 px-3 py-2"
+            [ngClass]="{'border-primary text-primary': donationChoice === 'custom'}"
+          >
+            <input
+              type="radio"
+              name="donation"
+              value="custom"
+              [checked]="donationChoice === 'custom'"
+              (change)="selectDonation('custom')"
+            />
+            <span>Custom R</span>
+            <input
+              class="w-24 rounded-xl border border-gray-200 px-2 py-1"
+              type="number"
+              min="0"
+              step="0.01"
+              [value]="customDonationRand"
+              (focus)="selectDonation('custom')"
+              (input)="updateCustomDonation($any($event.target).value)"
+            />
+          </label>
+        </div>
+        <p class="mt-2 text-xs text-gray-500">
+          Every rand goes toward funding classes for under-resourced kids. Current donation: R {{ (donation/100) | number:'1.0-0' }}.
+        </p>
+      </div>
+    </div>
+
+    <div class="card space-y-4">
       <div class="grid gap-4 md:grid-cols-2">
         <label class="flex flex-col gap-2">
           <span class="text-sm font-medium">Promo code</span>
@@ -144,6 +259,15 @@
           ></textarea>
         </label>
       </div>
+      <label class="flex items-start gap-2 rounded-2xl border border-gray-200 p-4 text-sm">
+        <input
+          type="checkbox"
+          class="mt-1"
+          [(ngModel)]="customer.newsletter_opt_in"
+          (ngModelChange)="persistCustomer()"
+        />
+        <span>Keep me posted about new drops and exclusive dojo events.</span>
+      </label>
       <p class="text-xs text-gray-500">Need help? Email <a class="text-primary" href="mailto:support&#64;guestshop.test">support&#64;guestshop.test</a>.</p>
     </div>
   </div>
@@ -203,14 +327,30 @@
           <span *ngIf="shipping; else freeShipping">R {{ (shipping/100) | number:'1.0-0' }}</span>
         </div>
         <ng-template #freeShipping><span class="text-green-600">Free</span></ng-template>
+        <div class="flex items-center justify-between" *ngIf="giftWrapFee">
+          <span>Gift wrap</span>
+          <span>R {{ (giftWrapFee/100) | number:'1.0-0' }}</span>
+        </div>
+        <div class="flex items-center justify-between" *ngIf="donation">
+          <span>Donation</span>
+          <span>R {{ (donation/100) | number:'1.0-0' }}</span>
+        </div>
         <div class="flex items-center justify-between" *ngIf="discount">
           <span>Discount</span>
           <span class="text-green-600">- R {{ (discount/100) | number:'1.0-0' }}</span>
         </div>
+        <div class="flex items-center justify-between border-t border-gray-200 pt-3 text-xs uppercase tracking-wide text-gray-500">
+          <span>Net before VAT</span>
+          <span>R {{ (preTaxTotal/100) | number:'1.0-0' }}</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span>VAT (15%)</span>
+          <span>R {{ (tax/100) | number:'1.0-0' }}</span>
+        </div>
       </div>
       <div class="border-t border-gray-200 pt-4 text-lg font-semibold">
         <div class="flex items-center justify-between">
-          <span>Total due</span>
+          <span>Total due (incl. VAT)</span>
           <span>R {{ (total/100) | number:'1.0-0' }}</span>
         </div>
         <p class="text-xs text-gray-500">Estimated delivery: {{ cart.shippingOption.eta }}</p>

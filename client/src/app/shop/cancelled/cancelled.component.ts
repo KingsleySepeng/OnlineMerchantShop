@@ -32,4 +32,20 @@ export class CancelledComponent {
   get total() {
     return this.cart.totalCents();
   }
+
+  get tax() {
+    return this.cart.taxCents();
+  }
+
+  get giftWrap() {
+    return this.cart.giftWrapCents();
+  }
+
+  get donation() {
+    return this.cart.donationCents();
+  }
+
+  get preTaxTotal() {
+    return this.cart.preTaxTotalCents();
+  }
 }

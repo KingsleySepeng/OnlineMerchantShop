@@ -15,11 +15,22 @@ interface StoredOrderPreview {
     subtotal_cents: number;
     shipping_cents: number;
     discount_cents: number;
+    pre_tax_total_cents: number;
+    gift_wrap_cents: number;
+    donation_cents: number;
+    tax_cents: number;
     total_cents: number;
   };
   shipping: ShippingOption;
   items: CartItem[];
   promoCode?: string | null;
+  extras: {
+    gift_wrap: boolean;
+    donation_cents: number;
+    requested_delivery_date?: string | null;
+    notes?: string;
+    newsletter_opt_in?: boolean;
+  };
 }
 
 @Component({
@@ -37,7 +48,22 @@ interface StoredOrderPreview {
   styleUrl: './checkout.component.css'
 })
 export class CheckoutComponent {
-  customer = { name: '', email: '', phone: '', address_line1: '', city: '', region: '', postal_code: '', notes: '' };
+  customer = {
+    name: '',
+    email: '',
+    phone: '',
+    address_line1: '',
+    address_line2: '',
+    city: '',
+    region: '',
+    postal_code: '',
+    company: '',
+    vat_number: '',
+    notes: '',
+    delivery_date: '',
+    request_invoice: false,
+    newsletter_opt_in: false,
+  };
   submitting = false;
   attemptedSubmit = false;
   promoCode = '';
@@ -51,6 +77,9 @@ export class CheckoutComponent {
     { id: 'ss', label: 'SnapScan' },
     { id: 'cp', label: 'Capitec Pay' },
   ];
+  donationChoice = '0';
+  customDonationRand = '';
+  today = new Date().toISOString().split('T')[0];
 
   constructor(public cart: CartService, private checkout: CheckoutService) {
   }
@@ -64,10 +93,14 @@ export class CheckoutComponent {
       if (stored) {
         const parsed = JSON.parse(stored);
         this.customer = { ...this.customer, ...parsed };
+        if (typeof parsed.request_invoice === 'boolean') {
+          this.customer.request_invoice = parsed.request_invoice;
+        }
       }
     } catch (err) {
       console.warn('Could not restore customer details', err);
     }
+    this.syncDonationChoiceFromCart();
   }
 
   get cartItems() {
@@ -88,6 +121,22 @@ export class CheckoutComponent {
 
   get total() {
     return this.cart.totalCents();
+  }
+
+  get preTaxTotal() {
+    return this.cart.preTaxTotalCents();
+  }
+
+  get tax() {
+    return this.cart.taxCents();
+  }
+
+  get donation() {
+    return this.cart.donationCents();
+  }
+
+  get giftWrapFee() {
+    return this.cart.giftWrapCents();
   }
 
   get selectedShippingId() {
@@ -127,7 +176,27 @@ export class CheckoutComponent {
       this.customer.postal_code,
     ];
     const missing = requiredFields.some(v => !v || !v.toString().trim());
-    return missing || !this.isEmailValid || !this.isPhoneValid;
+    return missing || !this.isEmailValid || !this.isPhoneValid || this.deliveryDateInvalid || this.invoiceCompanyMissing;
+  }
+
+  get deliveryDateInvalid() {
+    if (!this.customer.delivery_date) {
+      return false;
+    }
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selected = new Date(this.customer.delivery_date);
+    if (Number.isNaN(selected.getTime())) {
+      return true;
+    }
+    return selected.getTime() < today.getTime();
+  }
+
+  get invoiceCompanyMissing() {
+    if (!this.customer.request_invoice) {
+      return false;
+    }
+    return !this.customer.company || !this.customer.company.toString().trim();
   }
 
   persistCustomer() {
@@ -161,6 +230,31 @@ export class CheckoutComponent {
     this.cart.setShippingOption(optionId);
   }
 
+  toggleGiftWrap(event: Event) {
+    const checked = (event.target as HTMLInputElement)?.checked ?? false;
+    this.cart.setGiftWrap(checked);
+  }
+
+  selectDonation(choice: string) {
+    this.donationChoice = choice;
+    if (choice === 'custom') {
+      const amount = Math.max(Number(parseFloat(this.customDonationRand.replace(',', '.'))) || 0, 0);
+      this.cart.setDonation(Math.round(amount * 100));
+      return;
+    }
+    const cents = Number(choice);
+    this.cart.setDonation(Number.isFinite(cents) ? cents : 0);
+    this.customDonationRand = '';
+  }
+
+  updateCustomDonation(value: string) {
+    this.customDonationRand = value;
+    if (this.donationChoice === 'custom') {
+      const amount = Math.max(Number(parseFloat(value.replace(',', '.'))) || 0, 0);
+      this.cart.setDonation(Math.round(amount * 100));
+    }
+  }
+
   applyPromo() {
     const result = this.cart.applyPromo(this.promoCode);
     this.promoFeedback = result.message;
@@ -186,11 +280,22 @@ export class CheckoutComponent {
         subtotal_cents: this.subtotal,
         shipping_cents: this.shipping,
         discount_cents: this.discount,
+        pre_tax_total_cents: this.preTaxTotal,
+        gift_wrap_cents: this.giftWrapFee,
+        donation_cents: this.donation,
+        tax_cents: this.tax,
         total_cents: this.total,
       },
       shipping: this.cart.shippingOption,
       items: this.cart.snapshot,
       promoCode: this.cart.promo?.code ?? null,
+      extras: {
+        gift_wrap: this.cart.extras.gift_wrap,
+        donation_cents: this.cart.donationCents(),
+        requested_delivery_date: this.customer.delivery_date || null,
+        notes: this.customer.notes,
+        newsletter_opt_in: this.customer.newsletter_opt_in,
+      },
     };
     try {
       localStorage.setItem('guest-checkout-last-order', JSON.stringify(snapshot));
@@ -206,6 +311,9 @@ export class CheckoutComponent {
       return;
     }
     if (this.formInvalid) {
+      if (this.deliveryDateInvalid) {
+        alert('Please choose a delivery date today or in the future.');
+      }
       return;
     }
 
@@ -223,6 +331,19 @@ export class CheckoutComponent {
       alert('Could not start payment.');
     } finally {
       this.submitting = false;
+    }
+  }
+
+  private syncDonationChoiceFromCart() {
+    const current = this.cart.donationCents();
+    if (this.cart.donationPresets.includes(current)) {
+      this.donationChoice = String(current);
+    } else if (current > 0) {
+      this.donationChoice = 'custom';
+      this.customDonationRand = (current / 100).toFixed(2);
+    } else {
+      this.donationChoice = '0';
+      this.customDonationRand = '';
     }
   }
 }

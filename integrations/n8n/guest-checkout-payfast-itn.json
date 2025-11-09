@@ -1,0 +1,343 @@
+{
+  "name": "Guest Checkout - PayFast ITN Handler",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "payfast-itn",
+        "responseMode": "lastNode",
+        "options": {
+          "rawBody": true
+        }
+      },
+      "id": "webhook",
+      "name": "Webhook - PayFast ITN",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        160,
+        640
+      ],
+      "webhookId": "75095725-483a-418d-b751-05dbd90a3474"
+    },
+    {
+      "parameters": {
+        "jsCode": "const crypto = require('crypto');\n\nconst pfEncode = (v) => encodeURIComponent(v ?? '')\n  .replace(/%20/g, '+')\n  .replace(/%[0-9a-f]{2}/g, (m) => m.toUpperCase());\n\nlet raw = '';\ntry {\n  const buf = await this.helpers.getBinaryDataBuffer(0, 'data');\n  raw = buf.toString('utf8');\n} catch (e) {\n  raw = $json.rawBody || '';\n}\n\nif (!raw) {\n  return [{ json: { ok: false, reason: 'Missing raw body for signature validation.' } }];\n}\n\nlet received = '';\nconst kept = [];\nfor (const part of raw.split('&')) {\n  if (!part) continue;\n  if (part.startsWith('signature=')) {\n    received = decodeURIComponent(part.slice('signature='.length)).toLowerCase();\n  } else {\n    kept.push(part);\n  }\n}\n\nconst passphrase = $env.PAYFAST_PASSPHRASE || '';\nlet toSign = kept.join('&');\nif (passphrase) toSign += `&passphrase=${pfEncode(passphrase)}`;\nconst calc = crypto.createHash('md5').update(toSign).digest('hex').toLowerCase();\n\nconst body = $json.body || {};\nconst payment_status = (body.payment_status || '').toUpperCase();\nconst order_number = body.m_payment_id || body.merchant_reference || null;\nconst ok = Boolean(received) && calc === received && Boolean(order_number);\n\nreturn [{ json: { ok, received, calc, toSign, payment_status, order_number, body } }];\n"
+      },
+      "id": "verify",
+      "name": "Verify Signature",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        432,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json.ok}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "ifVerified",
+      "name": "IF Verified",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        672,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{$env.SUPABASE_REST_URL}}/rest/v1/orders?order_number=eq.{{$json.order_number}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apiKey",
+              "value": "={{ $env.SUPABASE_SERVICE_ROLE_KEY }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$env.SUPABASE_SERVICE_ROLE_KEY}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates,return=representation"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "=json",
+        "specifyBody": "json",
+        "jsonBody": "={{ (() => {\n  const statusMap = {\n    'COMPLETE': 'paid',\n    'CANCELLED': 'cancelled',\n    'FAILED': 'failed',\n    'PENDING': 'pending'\n  };\n  const body = $json.body || {};\n  const status = (statusMap[$json.payment_status] || 'created');\n  return JSON.stringify({\n    status,\n    gateway_status: $json.payment_status,\n    gateway_reference: body.pf_payment_id || body.token || null,\n    paid_at: status === 'paid' ? new Date().toISOString() : null,\n    metadata: {\n      ...(body.amount_gross ? { amount_gross: body.amount_gross } : {}),\n      payment_status: $json.payment_status,\n      payer: {\n        name: body.name_value_pair || body.name_first || null,\n        email: body.email_address || null\n      }\n    }\n  });\n})() }}",
+        "options": {
+          "response": {
+            "response": {}
+          }
+        }
+      },
+      "id": "updateOrder",
+      "name": "Supabase - Update Order",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        944,
+        576
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.SUPABASE_REST_URL}}/rest/v1/order_events",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apiKey",
+              "value": "={{ $env.SUPABASE_SERVICE_ROLE_KEY }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$env.SUPABASE_SERVICE_ROLE_KEY}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=minimal"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "=json",
+        "specifyBody": "json",
+        "jsonBody": "=[{\n  \"order_id\": \"{{ $json[0].id }}\",\n  \"status\": \"{{ $json[0].status }}\",\n  \"message\": \"PayFast ITN updated this order\",\n  \"meta\": {\n    \"gateway_status\": \"{{ $json[0].gateway_status }}\",\n    \"reference\": \"{{ $json[0].gateway_reference }}\"\n  }\n}]",
+        "options": {
+          "response": {
+            "response": {}
+          }
+        }
+      },
+      "id": "event",
+      "name": "Supabase - Log Event",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1168,
+        576
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{$env.SUPABASE_REST_URL}}/rest/v1/orders?order_number=eq.{{$json.order_number}}&select=order_number,status,total_cents,subtotal_cents,pre_tax_total_cents,tax_cents,donation_cents,gift_wrap_cents,shipping_cents,discount_cents,currency,notes,requested_delivery_date,shipping_method,shipping_eta,customer:customers(name,email,phone,address_line1,address_line2,city,region,postal_code,company,vat_number,newsletter_opt_in),items:order_items(name,unit_price_cents,quantity,line_total_cents)",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apiKey",
+              "value": "={{ $env.SUPABASE_SERVICE_ROLE_KEY }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$env.SUPABASE_SERVICE_ROLE_KEY}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {}
+          }
+        }
+      },
+      "id": "fetchOrder",
+      "name": "Supabase - Fetch Order",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        944,
+        736
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const fmt = (cents) => 'R ' + (Number(cents || 0) / 100).toFixed(2);\n\nconst root = items[0].json;\nconst order = Array.isArray(root) ? root[0] : root;\nif (!order) {\n  return [{ json: { error: 'Order not found for email', raw: root } }];\n}\n\nconst rows = (order.items || []).map(item => `\n  <tr>\n    <td style=\"padding:8px;\">${item.name} (x${item.quantity})</td>\n    <td align=\"right\" style=\"padding:8px;\">${fmt(item.line_total_cents)}</td>\n  </tr>`).join('');\n\nconst summaryRows = `\n  <tr><td style=\"padding:6px 0;\">Subtotal</td><td align=\"right\">${fmt(order.subtotal_cents)}</td></tr>\n  <tr><td style=\"padding:6px 0;\">Shipping</td><td align=\"right\">${fmt(order.shipping_cents)}</td></tr>\n  ${order.gift_wrap_cents ? `<tr><td style=\\\"padding:6px 0;\\\">Gift wrap</td><td align=\\\"right\\\">${fmt(order.gift_wrap_cents)}</td></tr>` : ''}\n  ${order.donation_cents ? `<tr><td style=\\\"padding:6px 0;\\\">Donation</td><td align=\\\"right\\\">${fmt(order.donation_cents)}</td></tr>` : ''}\n  ${order.discount_cents ? `<tr><td style=\\\"padding:6px 0;\\\">Discount</td><td align=\\\"right\\\" style=\\\"color:#16a34a;\\\">- ${fmt(order.discount_cents)}</td></tr>` : ''}\n  <tr><td style=\"padding:6px 0; font-size:12px; color:#6b7280;\">Net before VAT</td><td align=\"right\">${fmt(order.pre_tax_total_cents)}</td></tr>\n  <tr><td style=\"padding:6px 0;\">VAT (15%)</td><td align=\"right\">${fmt(order.tax_cents)}</td></tr>\n  <tr><td style=\"padding:6px 0; font-weight:600;\">Total paid</td><td align=\"right\" style=\"font-weight:600;\">${fmt(order.total_cents)}</td></tr>`;\n\nreturn [{ json: { order, rows_html: rows, totals_html: summaryRows } }];\n"
+      },
+      "id": "emailModel",
+      "name": "Build Email Model",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1168,
+        736
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{$json.order.customer.email}}",
+        "subject": "=Your order #{{ $json.order.order_number }} is confirmed",
+        "message": "=<!DOCTYPE html>\n<html>\n  <body style=\"font-family: Arial, sans-serif; color: #1f2937; background-color: #f5f5f5; padding: 20px;\">\n    <div style=\"max-width: 640px; margin: auto; background: white; border-radius: 16px; padding: 32px; box-shadow: 0 15px 40px rgba(15,23,42,0.15);\">\n      <h1 style=\"color: #0f172a; text-align: center;\">Thank you for your payment!</h1>\n      <p>Hi <strong>{{ $json.order.customer.name }}</strong>,</p>\n      <p>Your guest checkout order <strong>#{{ $json.order.order_number }}</strong> has been marked as paid. We'll start preparing your package right away.</p>\n\n      <h2 style=\"margin-top: 30px; color:#0f172a;\">Order summary</h2>\n      <table style=\"width:100%; border-collapse: collapse; margin-bottom: 20px;\">\n        <tr style=\"background-color:#f1f5f9;\">\n          <th align=\"left\" style=\"padding:10px;\">Item</th>\n          <th align=\"right\" style=\"padding:10px;\">Total</th>\n        </tr>\n        {{ $json.rows_html }}\n      </table>\n\n      <table style=\"width:100%; border-collapse: collapse; font-size: 14px;\">\n        {{ $json.totals_html }}\n      </table>\n\n      <div style=\"margin-top: 30px; background:#f8fafc; padding: 16px; border-radius: 12px;\">\n        <strong>Delivery to:</strong><br/>\n        {{ $json.order.customer.name }}<br/>\n        {{ $json.order.customer.address_line1 }}<br/>\n        {{ $json.order.customer.address_line2 ? $json.order.customer.address_line2 + '<br/>' : '' }}\n        {{ $json.order.customer.city }}, {{ $json.order.customer.region }} {{ $json.order.customer.postal_code }}<br/>\n        <span style=\"font-size:12px; color:#64748b;\">{{ $json.order.shipping_method }} • ETA {{ $json.order.shipping_eta }}</span>\n      </div>\n\n      {{ $json.order.requested_delivery_date ? `<p style=\\\"margin-top:20px;\\\"><strong>Requested delivery:</strong> ${new Date($json.order.requested_delivery_date).toLocaleDateString()}</p>` : '' }}\n\n      {{ $json.order.notes ? `<p style=\\\"margin-top:12px;\\\"><strong>Notes:</strong> ${$json.order.notes}</p>` : '' }}\n\n      {{ $json.order.donation_cents ? `<p style=\\\"margin-top:12px; color:#16a34a;\\\">Thank you for adding a donation of ${($json.order.donation_cents/100).toFixed(2)} to support our dojo outreach!</p>` : '' }}\n\n      <p style=\"margin-top: 24px; font-size: 12px; color: #94a3b8;\">Need help? Reply to this email and our team will jump in.</p>\n    </div>\n  </body>\n</html>",
+        "options": {}
+      },
+      "id": "email",
+      "name": "Send Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1392,
+        736
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "tpHjXClvYDFfBX6P",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "respondOK",
+      "name": "Respond 200",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1616,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseCode": 400,
+          "responseBody": "={ error: 'Signature verification failed' }"
+        }
+      },
+      "id": "respondBad",
+      "name": "Respond 400",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        672,
+        864
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook - PayFast ITN": {
+      "main": [
+        [
+          {
+            "node": "Verify Signature",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify Signature": {
+      "main": [
+        [
+          {
+            "node": "IF Verified",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Verified": {
+      "main": [
+        [
+          {
+            "node": "Supabase - Update Order",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Respond 400",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase - Update Order": {
+      "main": [
+        [
+          {
+            "node": "Supabase - Log Event",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Supabase - Fetch Order",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase - Fetch Order": {
+      "main": [
+        [
+          {
+            "node": "Build Email Model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Email Model": {
+      "main": [
+        [
+          {
+            "node": "Send Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email": {
+      "main": [
+        [
+          {
+            "node": "Respond 200",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {},
+  "versionId": "updated",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fde849f3e37b9eea4a53c7f1f089e942599c31e7758ff6bd5c79b46ced703a3d"
+  },
+  "id": "rLEmPGKsUJueOxkW",
+  "tags": []
+}

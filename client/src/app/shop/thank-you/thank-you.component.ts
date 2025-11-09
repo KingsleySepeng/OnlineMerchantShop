@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {CartService, CartItem} from "../../core/cart.service";
-import {DecimalPipe, NgForOf, NgIf} from "@angular/common";
+import {DatePipe, DecimalPipe, NgForOf, NgIf} from "@angular/common";
 import {RouterLink} from "@angular/router";
 
 interface StoredOrderPreview {
@@ -11,6 +11,10 @@ interface StoredOrderPreview {
     subtotal_cents: number;
     shipping_cents: number;
     discount_cents: number;
+    pre_tax_total_cents: number;
+    gift_wrap_cents: number;
+    donation_cents: number;
+    tax_cents: number;
     total_cents: number;
   };
   shipping: {
@@ -20,12 +24,19 @@ interface StoredOrderPreview {
   };
   items: CartItem[];
   promoCode?: string | null;
+  extras?: {
+    gift_wrap: boolean;
+    donation_cents: number;
+    requested_delivery_date?: string | null;
+    notes?: string;
+    newsletter_opt_in?: boolean;
+  };
 }
 
 @Component({
   selector: 'app-thank-you',
   standalone: true,
-  imports: [NgIf, NgForOf, DecimalPipe, RouterLink],
+  imports: [NgIf, NgForOf, DecimalPipe, RouterLink, DatePipe],
   templateUrl: './thank-you.component.html',
   styleUrl: './thank-you.component.css'
 })
@@ -63,5 +74,9 @@ export class ThankYouComponent implements OnInit {
     }
     localStorage.removeItem('guest-checkout-last-order');
     this.order = null;
+  }
+
+  get hasInvoiceRequest() {
+    return Boolean(this.order?.customer?.request_invoice);
   }
 }

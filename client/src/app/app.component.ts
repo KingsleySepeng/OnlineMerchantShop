@@ -18,9 +18,17 @@ export class AppComponent {
   get cartSummary() {
     const count = this.cart.itemCount();
     const subtotal = this.cart.subtotalCents();
+    const tax = this.cart.taxCents();
+    const donation = this.cart.donationCents();
+    const giftWrap = this.cart.giftWrapCents();
+    const total = this.cart.totalCents();
     return {
       count,
       subtotal,
+      tax,
+      donation,
+      giftWrap,
+      total,
     };
   }
 }
